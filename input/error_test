@@ -1,0 +1,11 @@
+Calcul de l'erreur en norme L1 : example 1
+
+option_error norm_L1
+option_godunov transport_1d_1
+xmin -1
+xmax 1
+cfl 0.5
+m 1
+len_liste_N 3
+liste_N 10 20 30
+tmax 0.5
