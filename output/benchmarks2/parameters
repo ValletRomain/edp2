@@ -1,0 +1,10 @@
+Parametres output/benchmarks2:
+
+N 1000
+m 1
+dt 0.001000
+dx 0.002000
+xmin -1.000000
+xmax 1.000000
+cfl 0.500000
+time 0
