@@ -1,16 +1,22 @@
 
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 3.6)
 
-project(Calcul_Sci)
+# Godunov
+project(godunov)
 
-set(EXECUTABLE_OUTPUT_PATH bin/${CMAKE_BUILD_TYPE})
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c+11")
 
-add_executable(
-	godunov
-    src/godunov.c
-)
+set(GODUNOV_FILES src/godunov.c)
+add_executable(godunov ${GODUNOV_FILES})
 
-add_executable(
-	godunov_error
-    src/godunov_error.c
-)
+target_link_libraries(godunov PRIVATE m)
+
+# Godunov error
+project(godunov_error)
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c+11")
+
+set(GODUNOV_ERROR_FILES src/godunov_error.c)
+add_executable(godunov_error ${GODUNOV_FILES})
+
+target_link_libraries(godunov_error PRIVATE m)
