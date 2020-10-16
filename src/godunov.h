@@ -2,7 +2,80 @@
 #define _GODUNOV_H
 
 typedef struct godunov{
-	int test;
-}godunov;
+
+    // Option
+    int keep_error;
+
+    // Parametre du probleme
+    int m, N;
+    double xmin, xmax;
+    double cfl;
+    double dt, dx;
+    double tmax;
+
+    double (*pspeed)(void);
+    void (*pfluxnum)(double*, double*, double*);
+    double (*plambda_ma)(double*);
+    void (*psolexacte)(double, double, double*);
+
+    // Resultats du probleme
+    unsigned long time;
+
+    double *xi; // centre des milieux des cellules
+    double *un; // solution a l'instant n
+    double *unp1; // solution a l'instant n+1
+    double *sol; // solution exact
+
+} godunov;
+
+typedef struct godunov_error{
+
+    // Option
+    int keep_error;
+
+    // Parametre du probleme
+    double c;
+    int m; // nombre de variables conservatives, nombre de cellules
+    double dt, dx; // pas de temps, pas d'espace
+    double xmin, xmax; // bornes de l'intervalles
+    double cfl; // vmax : dt/dx
+    double tmax;
+    char * option_error;
+    char * option_godunov;
+
+    int len_liste_N;
+    int * liste_N;
+
+    double (*perror)(int, int, double*, double*);
+
+    //godunov * liste_godunov;
+
+    double * liste_error;
+    unsigned long * liste_time;
+
+} godunov_error;
+
+void godunov_init(godunov *pgd, double xmin, double xmax, double cfl,
+                    int m, int N, double tmax, char * option);
+
+void godunov_init_file(godunov *pgd, char * name_input);
+
+void godunov_plot(godunov *pgd, char * output_path);
+
+void godunov_free(godunov *pgd);
+
+void godunov_solve(godunov *pgd, int option_visual);
+
+void godunov_error_init(godunov_error *pgderr, double xmin, double xmax,
+                        double cfl, int m, int len_liste_N, int * liste_N,
+                        double tmax, char * option_error, char * option_godunov);
+
+void godunov_error_init_file(godunov_error *pgderr, char * name_input);
+
+void godunov_error_plot(godunov_error *pgderr, char * output_path);
+
+void godunov_error_free(godunov_error * pgd);
+
+void godunov_error_compute(godunov_error *pgderr);
 
 #endif
