@@ -12,7 +12,7 @@
 int main(int argc, char * argv[]){
 
     if (argc != 3){
-        raler(0, "usage : godunov2 init_file output_path");
+        raler(0, "usage : godunov_error init_file output_path");
     }
 
     godunov_error gderr = {0};
