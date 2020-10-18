@@ -5,8 +5,10 @@
 #include <stdbool.h>
 #include <math.h>
 #include <time.h>
+#include <dirent.h>
 
 #include "parameters.c"
+#include "function_plot.c"
 
 #define CHEMIN_MAX 512
 
@@ -19,9 +21,13 @@
 // Input
 
 void godunov_init(godunov *pgd,
-                    double xmin, double xmax, double cfl,
-                    int m, int N, double tmax,
+                    char * name_file,
+                    double xmin, double xmax, double cfl, double tmax,
+                    int m, int N,
                     char * option){
+
+    pgd->name_file = name_file;
+    //pgd->output_path = output_path;
 
     pgd->xmin = xmin;
     pgd->xmax = xmax;
@@ -55,13 +61,24 @@ void godunov_init_file(godunov *pgd, char * name_input){
     // pgd pointeur de la structure godunov regroupant les différentes variables du problème
     // name_input le nom du fichier regroupant les variables du problème
 
-    // Initialisation des variables
-
     FILE * file = NULL;
     char * line = malloc(CHEMIN_MAX);
     char * str = malloc(CHEMIN_MAX);
-    const char * separators = " ";
+    const char * separators = " \n";
+    const char * separators1 = "/";
     
+    //--------------------------------------------------------
+    // Sauvegarde du nom du fichier
+    
+    char * name_file = malloc(CHEMIN_MAX);
+    strcpy(name_file, name_input);
+    strcpy(str, name_input);
+
+    strtok(str, separators1); 
+    while ( (str=strtok(NULL, separators1)) != NULL){
+        strcpy(name_file, str);
+    }
+
     //--------------------------------------------------------
     // Lecture du fichier
 
@@ -125,8 +142,8 @@ void godunov_init_file(godunov *pgd, char * name_input){
 
     //--------------------------------------------------------
     // Calcul des autres valeurs
-
-    godunov_init(pgd, xmin, xmax, cfl, m, N, tmax, option);
+    
+    godunov_init(pgd, name_file, xmin, xmax, tmax, cfl, m, N, option);
 
 }
 
@@ -137,70 +154,27 @@ void godunov_init_file(godunov *pgd, char * name_input){
 void godunov_plot(godunov *pgd, char * output_path){
     // ATTENTION, ne prend pas en compte les dimension m>1
 
-
-    char * name_output;
-
     // Si le dossier n'existe pas on en refait un                           <<<<---------- A FAIRE
     // Et si un fichier .gnu n'exite pas on en cree un
 
+    // Creation du dossier
+    char * output_path_final = malloc(CHEMIN_MAX);
+    strcpy(output_path_final, output_path);
+    strcat(output_path_final, pgd->name_file);
+
+    DIR * poutput = opendir(output_path_final);
+    closedir(poutput);
+
     // Creation du fichier parameters
-    name_output = malloc(CHEMIN_MAX);
-    strcpy(name_output, output_path);
-    strcat(name_output, "/");
-    strcat(name_output, "parameters");
-
-    FILE *fic = fopen(name_output, "w");
-
-    fprintf(fic, "Parametres %s:\n\n", output_path);
-    fprintf(fic, "N %d\n", pgd->N);
-    fprintf(fic, "m %d\n", pgd->m);
-    fprintf(fic, "dt %f\n", pgd->dt);
-    fprintf(fic, "dx %f\n", pgd->dx);
-    fprintf(fic, "xmin %f\n", pgd->xmin);
-    fprintf(fic, "xmax %f\n", pgd->xmax);
-    fprintf(fic, "cfl %f\n", pgd->cfl);
-    fprintf(fic, "time %ld\n", pgd->time);
-
-    fclose(fic);
-    free(name_output);
+    gd_create_parameters(pgd, output_path_final);
 
     // Creation du fichier .dat
-    name_output = malloc(CHEMIN_MAX);
-    strcpy(name_output, output_path);
-    strcat(name_output, "/");
-    strcat(name_output, "plot.dat");
-
-    fic = fopen(name_output, "w");
-
-    for (int i = 0; i < pgd->N+2; i++){
-
-        fprintf(fic, "%f %f %f\n", pgd->xi[i], pgd->sol[i], pgd->un[i]);
-
-    }
-
-    fclose(fic);
-    free(name_output);
+    gd_create_plot(pgd, output_path_final);
     
-    // Creation du fichier plotcom.gnu si il n'existe pas
-    name_output = malloc(CHEMIN_MAX);
-    strcpy(name_output, output_path);
-    strcat(name_output, "/");
-    strcat(name_output, "plotcom.gnu");
+    // Creation et execution du fichier plotcom.gnu
+    gd_create_execute_gnu(pgd, output_path_final);
 
-    fic = fopen(name_output, "a");
-    
-    fclose(fic);
-    free(name_output);
-
-    // Execution de la commande gnuplot
-    char * name_command = malloc(CHEMIN_MAX);
-    strcpy(name_command, "gnuplot ");
-    strcat(name_command, output_path);
-    strcat(name_command, "/");
-    strcat(name_command, "plotcom.gnu");
-    
-    int status = system(name_command);
-    assert(status == EXIT_SUCCESS);
+    free(output_path_final);
 
     printf("Fin Plot godunov\n");
 }
@@ -286,9 +260,12 @@ void godunov_solve(godunov *pgd, int option_visual){
 // Input
 
 void godunov_error_init(godunov_error *pgderr,
-                        double xmin, double xmax, double cfl,
+                        char * name_file,
+                        double xmin, double xmax, double cfl, double tmax,
                         int m, int len_liste_N, int * liste_N,
-                        double tmax, char * option_error, char * option_godunov){
+                        char * option_error, char * option_godunov){
+
+    pgderr->name_file = name_file;
 
     pgderr->xmin = xmin;
     pgderr->xmax = xmax;
@@ -315,9 +292,24 @@ void godunov_error_init_file(godunov_error *pgderr, char * name_input){
     char * line = malloc(CHEMIN_MAX);
     char * str = malloc(CHEMIN_MAX);
     const char * separators = " \n";
+    const char * separators1 = "/";
     
+    ///--------------------------------------------------------
+    // Sauvegarde du nom du fichier
+    
+    char * name_file = malloc(CHEMIN_MAX);
+    strcpy(name_file, name_input);
+    strcpy(str, name_input);
+
+    strtok(str, separators1); 
+    while ( (str=strtok(NULL, separators1)) != NULL){
+        strcpy(name_file, str);
+    }
+    printf("Test : name_file = %s\n", name_file);
+
     //--------------------------------------------------------
     // Lecture du fichier
+
     file = fopen(name_input, "r");
 
     // La consigne + le saut de ligne
@@ -398,10 +390,10 @@ void godunov_error_init_file(godunov_error *pgderr, char * name_input){
     //--------------------------------------------------------
     // Initialisation
     
-    godunov_error_init(pgderr,
-                    xmin, xmax, cfl,
-                    m, len_liste_N, liste_N,
-                    tmax, option_error, option_godunov);
+    void godunov_error_init(gderr, name_file,
+                        xmin, xmax, cfl, tmax,
+                        m, len_liste_N, liste_N,
+                        option_error, option_godunov);
 
     free(option_error);
     free(option_godunov);
@@ -418,84 +410,28 @@ void godunov_error_plot(godunov_error *pgderr, char * output_path){
     // Si le dossier n'existe pas on en refait un                           <<<<---------- A FAIRE
     // Et si un fichier .gnu n'exite pas on en cree un
 
+    // Creation du dossier
+    char * output_path_final = malloc(CHEMIN_MAX);
+    strcpy(output_path_final, output_path);
+    strcat(output_path_final, pgderr->name_file);
+
+    DIR * poutput = opendir(output_path_final);
+    closedir(poutput);
+
     // Creation du fichier parameters
-    name_output = malloc(CHEMIN_MAX);
-    strcpy(name_output, output_path);
-    strcat(name_output, "/");
-    strcat(name_output, "parameters");
-
-    FILE *fic = fopen(name_output, "w");
-
-    fprintf(fic, "Parametres %s:\n\n", output_path);
-    fprintf(fic, "len_liste_N %d\n", pgderr->len_liste_N);
-    fprintf(fic, "liste_N ");
-    for (int i=0; i<pgderr->len_liste_N; i++){
-        fprintf(fic, "%d ", pgderr->liste_N[i]);
-    }
-    fprintf(fic, "\n");
-    fprintf(fic, "m %d\n", pgderr->m);
-    fprintf(fic, "xmin %f\n", pgderr->xmin);
-    fprintf(fic, "xmax %f\n", pgderr->xmax);
-    fprintf(fic, "cfl %f\n", pgderr->cfl);
-
-    fclose(fic);
-    free(name_output);
+    gderr_create_parameters(pgderr, output_path_final);
 
     // Creation du fichier error.dat
-    name_output = malloc(CHEMIN_MAX);
-    strcpy(name_output, output_path);
-    strcat(name_output, "/");
-    strcat(name_output, "error.dat");
-
-    fic = fopen(name_output, "w");
-
-    for (int i = 0; i < pgderr->len_liste_N; i++){
-
-        fprintf(fic, "%d %f\n", pgderr->liste_N[i], pgderr->liste_error[i]);
-
-    }
-
-    fclose(fic);
-    free(name_output);
+    gderr_create_error(pgderr, output_path_final);
     
     // Creation du fichier time.dat
-    name_output = malloc(CHEMIN_MAX);
-    strcpy(name_output, output_path);
-    strcat(name_output, "/");
-    strcat(name_output, "time.dat");
-
-    fic = fopen(name_output, "w");
-
-    for (int i = 0; i < pgderr->len_liste_N; i++){
-
-        fprintf(fic, "%d %ld\n", pgderr->liste_N[i], pgderr->liste_time[i]);
-
-    }
-
-    fclose(fic);
-    free(name_output);
+    gderr_create_time(pgderr, output_path_final);
 
     // Creation du fichier plotcom.gnu si il n'existe pas
-    name_output = malloc(CHEMIN_MAX);
-    strcpy(name_output, output_path);
-    strcat(name_output, "/");
-    strcat(name_output, "plotcom.gnu");
+    gderr_create_execute_gnu(pgderr, output_path_final);
+    
+    free(output_path_final);
 
-    fic = fopen(name_output, "a");
-    
-    fclose(fic);
-    free(name_output);
-
-    // Execution de la commande gnuplot
-    char * name_command = malloc(CHEMIN_MAX);
-    strcpy(name_command, "gnuplot ");
-    strcat(name_command, output_path);
-    strcat(name_command, "/");
-    strcat(name_command, "plotcom.gnu");
-    
-    int status = system(name_command);
-    assert(status == EXIT_SUCCESS);
-    
     printf("Fin Plot godunov_error\n");
 
 }
@@ -525,9 +461,10 @@ void godunov_error_compute(godunov_error *pgderr){
     
     for (int i=0; i<pgderr->len_liste_N; i++){
         
-        godunov_init(&gd, pgderr->xmin, pgderr->xmax, pgderr->cfl,
+        godunov_init(&gd, pgderr->name_file,
+                        pgderr->tmax, pgderr->xmin, pgderr->xmax, pgderr->cfl,
                         pgderr->m, pgderr->liste_N[i],
-                        pgderr->tmax, pgderr->option_godunov);
+                        pgderr->option_godunov);
 
         godunov_solve(&gd, 0);
 

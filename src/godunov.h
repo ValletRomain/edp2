@@ -3,8 +3,8 @@
 
 typedef struct godunov{
 
-    // Option
-    int keep_error;
+    // Name of different file or folder
+    char * name_file;
 
     // Parametre du probleme
     int m, N;
@@ -30,11 +30,10 @@ typedef struct godunov{
 
 typedef struct godunov_error{
 
-    // Option
-    int keep_error;
+    // Name of different file or folder
+    char * name_file;
 
     // Parametre du probleme
-    double c;
     int m; // nombre de variables conservatives, nombre de cellules
     double dt, dx; // pas de temps, pas d'espace
     double xmin, xmax; // bornes de l'intervalles
@@ -55,8 +54,11 @@ typedef struct godunov_error{
 
 } godunov_error;
 
-void godunov_init(godunov *pgd, double xmin, double xmax, double cfl,
-                    int m, int N, double tmax, char * option);
+void godunov_init(godunov *pgd,
+                    char * name_file,
+                    double xmin, double xmax, double cfl, double tmax,
+                    int m, int N,
+                    char * option);
 
 void godunov_init_file(godunov *pgd, char * name_input);
 
@@ -66,9 +68,11 @@ void godunov_free(godunov *pgd);
 
 void godunov_solve(godunov *pgd, int option_visual);
 
-void godunov_error_init(godunov_error *pgderr, double xmin, double xmax,
-                        double cfl, int m, int len_liste_N, int * liste_N,
-                        double tmax, char * option_error, char * option_godunov);
+void godunov_error_init(godunov_error *pgderr,
+                        char * name_file,
+                        double xmin, double xmax, double cfl, double tmax,
+                        int m, int len_liste_N, int * liste_N,
+                        char * option_error, char * option_godunov);
 
 void godunov_error_init_file(godunov_error *pgderr, char * name_input);
 

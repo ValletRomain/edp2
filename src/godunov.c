@@ -13,7 +13,7 @@ int main(int argc, char * argv[]){
     if (argc != 3){
         raler(0, "usage : godunov init_file output_path");
     }
-
+    
     godunov gd = {0};
     
     godunov_init_file(&gd, argv[1]);
