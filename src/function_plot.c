@@ -11,6 +11,43 @@
 
 #define CHEMIN_MAX 512
 
+
+//-----------------------------------------------------------------------------
+// Manage of parameters
+//-----------------------------------------------------------------------------
+
+void godunov_parameters(godunov * pgd, char * option){
+
+    if (option = "transport_1d_1"){
+        pgd->pspeed = speed_trans1;
+        pgd->pfluxnum = fluxnum_trans1;
+        pgd->plambda_ma = lambda_ma_trans1;
+        pgd->pboundary_spatial = boundary_spatial_trans1;
+        pgd->pboundary_temporal_left = boundary_temporal_left_trans1;
+        pgd->pboundary_temporal_right = boundary_temporal_right_trans1;
+
+        if (pgd->keept_solexacte){
+            pgd->psolexacte = solexacte_trans1;
+        }
+    }
+}
+
+void godunov_error_parameters(godunov_error * pgderr, char * option_error){
+
+    if (option_error = "norm_L1"){
+        pgderr->perror = error_L1;
+    }
+    else if (option_error = "norm_L2"){
+        pgderr->perror = error_L2;
+    }
+}
+
+
+//-----------------------------------------------------------------------------
+// Fonction output
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Fonction pour créer les fichiers outputs godunov
 
 void gd_create_parameters(godunov * pgd, char * output_path){
@@ -23,6 +60,7 @@ void gd_create_parameters(godunov * pgd, char * output_path){
     FILE *fic = fopen(name_file, "w");
     
     fprintf(fic, "Parametres %s :\n\n", pgd->name_file);
+    fprintf(fic, "keept_solexacte %d\n", pgd->keept_solexacte);
     fprintf(fic, "N %d\n", pgd->N);
     fprintf(fic, "m %d\n", pgd->m);
     fprintf(fic, "dt %f\n", pgd->dt);
@@ -45,8 +83,15 @@ void gd_create_plot(godunov * pgd, char * output_path){
 
     FILE *fic = fopen(name_file, "w");
 
-    for (int i = 0; i < pgd->N+2; i++){
-        fprintf(fic, "%f %f %f\n", pgd->xi[i], pgd->sol[i], pgd->un[i]);
+    if (pgd->keept_solexacte){
+        for (int i = 0; i < pgd->N+2; i++){
+            fprintf(fic, "%f %f %f\n", pgd->xi[i], pgd->un[i], pgd->sol[i]);
+        }
+    }
+    else {
+        for (int i = 0; i < pgd->N+2; i++){
+            fprintf(fic, "%f %f\n", pgd->xi[i], pgd->un[i]);
+        }
     }
 
     fclose(fic);
@@ -68,8 +113,12 @@ void gd_create_execute_gnu(godunov * pgd, char * output_path){
     fprintf(fic, "set xlabel \"x\"\n");
     fprintf(fic, "set ylabel \"u\"\n\n");
     fprintf(fic, "set yrange [0:1.2]\n\n");
-    fprintf(fic, "plot \'%s/plot.dat\' using 1:2 title \"solution exacte\", ", output_path);
-    fprintf(fic, "\'%s/plot.dat\' using 1:3 title \"soluton numerique\"", output_path);
+    fprintf(fic, "plot \'%s/plot.dat\' using 1:2 title \"solution numerique\"", output_path);
+    if (pgd->keept_solexacte){
+        fprintf(fic, ", \'%s/plot.dat\' using 1:3 title \"soluton exacte\"", output_path);
+    }
+    
+    
 
     fclose(fic);
     free(name_file);
@@ -87,6 +136,7 @@ void gd_create_execute_gnu(godunov * pgd, char * output_path){
     free(name_command);
 }
 
+//-----------------------------------------------------------------------------
 // Fonction pour créer les fichiers outputs godunov_error
 
 void gderr_create_parameters(godunov_error * pgderr, char * output_path){

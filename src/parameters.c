@@ -5,8 +5,6 @@
 #include <stdbool.h>
 #include <math.h>
 
-#include "godunov.h"
-
 // vitesse de transport
 #define _C1 1
 
@@ -43,6 +41,21 @@ void solexacte_trans1(double x, double t, double *w){
 
 }
 
+void boundary_spatial_trans1(double x, double *w){
+
+    solexacte_trans1(x, 0, w);
+}
+
+void boundary_temporal_left_trans1(double xmin, double t, double *w){
+
+    solexacte_trans1(xmin, t, w);
+}
+
+void boundary_temporal_right_trans1(double xmax, double t, double *w){
+
+    solexacte_trans1(xmax, t, w);
+}
+
 
 //-----------------------------------------------------------------------------
 // Calcul des normes
@@ -74,29 +87,4 @@ double error_L2(int I, int m, double * a, double * b){
      }
 
      return norme_L1;
-}
-
-
-//-----------------------------------------------------------------------------
-// Manage of parameters
-//-----------------------------------------------------------------------------
-
-void godunov_parameters(godunov * pgd, char * option){
-
-    if (option = "transport_1d_1"){
-        pgd->pspeed = speed_trans1;
-        pgd->pfluxnum = fluxnum_trans1;
-        pgd->plambda_ma = lambda_ma_trans1;
-        pgd->psolexacte = solexacte_trans1;
-    }
-}
-
-void godunov_error_parameters(godunov_error * pgderr, char * option_error){
-
-    if (option_error = "norm_L1"){
-        pgderr->perror = error_L1;
-    }
-    else if (option_error = "norm_L2"){
-        pgderr->perror = error_L2;
-    }
 }

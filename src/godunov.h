@@ -6,6 +6,9 @@ typedef struct godunov{
     // Name of different file or folder
     char * name_file;
 
+    // Option
+    int keept_solexacte;
+
     // Parametre du probleme
     int m, N;
     double xmin, xmax;
@@ -16,7 +19,13 @@ typedef struct godunov{
     double (*pspeed)(void);
     void (*pfluxnum)(double*, double*, double*);
     double (*plambda_ma)(double*);
+
+    void (*pboundary_spatial)(double, double*);
+    void (*pboundary_temporal_left)(double, double, double*);
+    void (*pboundary_temporal_right)(double, double, double*);
+
     void (*psolexacte)(double, double, double*);
+
 
     // Resultats du probleme
     unsigned long time;
@@ -55,7 +64,7 @@ typedef struct godunov_error{
 } godunov_error;
 
 void godunov_init(godunov *pgd,
-                    char * name_file,
+                    char * name_file, int keept_solution,
                     double xmin, double xmax, double cfl, double tmax,
                     int m, int N,
                     char * option);

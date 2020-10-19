@@ -23,13 +23,14 @@
 // Input
 
 void godunov_init(godunov *pgd,
-                    char * name_file,
+                    char * name_file, int keept_solexacte,
                     double xmin, double xmax, double cfl, double tmax,
                     int m, int N,
                     char * option){
 
     pgd->name_file = name_file;
-    //pgd->output_path = output_path;
+    
+    pgd->keept_solexacte = keept_solexacte;
 
     pgd->xmin = xmin;
     pgd->xmax = xmax;
@@ -50,8 +51,11 @@ void godunov_init(godunov *pgd,
     for (int i = 0; i < N + 2; i++){
 
         pgd->xi[i] = xmin + pgd->dx/2 + (i-1)*pgd->dx;
-        pgd->psolexacte(pgd->xi[i], 0, pgd->un + i*m);
-        pgd->psolexacte(pgd->xi[i], tmax, pgd->sol + i*m);
+        pgd->pboundary_spatial(pgd->xi[i], pgd->un + i*m);
+
+        if (keept_solexacte){
+            pgd->psolexacte(pgd->xi[i], tmax, pgd->sol + i*m);
+        }
     }
 
     if (0){
@@ -91,12 +95,19 @@ void godunov_init_file(godunov *pgd, char * name_input){
     printf("Initialisation <- %s\n", name_input);
     fgets(line, CHEMIN_MAX, file);
 
+    // keept_solexacte :
+    fgets(line, CHEMIN_MAX, file);
+
+    str = strtok(line, separators);
+    str = strtok(NULL, separators);
+    int keept_solexacte = atoi(str);
+
     // option :
     fgets(line, CHEMIN_MAX, file);
 
     str = strtok(line, separators);
     str = strtok(NULL, separators);
-    char * option= str;
+    char * option = str;
 
     // xmin :
     fgets(line, CHEMIN_MAX, file);
@@ -145,7 +156,7 @@ void godunov_init_file(godunov *pgd, char * name_input){
     //--------------------------------------------------------
     // Calcul des autres valeurs
     
-    godunov_init(pgd, name_file, xmin, xmax, tmax, cfl, m, N, option);
+    godunov_init(pgd, name_file, keept_solexacte, xmin, xmax, tmax, cfl, m, N, option);
 
 }
 
@@ -227,14 +238,12 @@ void godunov_solve(godunov *pgd, int option_visual){
         // mise à jour
         tnow += pgd->dt;
         if (option_visual){
-            //printf("tnow = %f vmax = %f tmax = %f\n", tnow, vmax, pgd->tmax);
+            printf("tnow = %f vmax = %f tmax = %f\n", tnow, vmax, pgd->tmax);
         }
         
         // conditions aux limites
-        int i=0;
-        pgd->psolexacte(pgd->xi[i], tnow, pgd->unp1 + i * m);
-        i = pgd->N + 1;
-        pgd->psolexacte(pgd->xi[i], tnow, pgd->unp1 + i * m);
+        pgd->pboundary_temporal_left(pgd->xmin, tnow, pgd->unp1);
+        pgd->pboundary_temporal_right(pgd->xmax, tnow, pgd->unp1 + (pgd->N+1)*m);
 
         memcpy(pgd->un, pgd->unp1, (pgd->N + 2) * m *sizeof(double));
     }
@@ -453,7 +462,7 @@ void godunov_error_compute(godunov_error *pgderr){
     
     for (int i=0; i<pgderr->len_liste_N; i++){
         
-        godunov_init(&gd, pgderr->name_file,
+        godunov_init(&gd, pgderr->name_file, 1,
                         pgderr->xmin, pgderr->xmax, pgderr->cfl, pgderr->tmax,
                         pgderr->m, pgderr->liste_N[i],
                         pgderr->option_godunov);
