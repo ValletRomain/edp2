@@ -5,5 +5,5 @@ xmin -1
 xmax 1
 cfl 0.5
 m 1
-N 100
+N 1000
 tmax 0.5

@@ -6,6 +6,6 @@ xmin -1
 xmax 1
 cfl 0.5
 m 1
-len_liste_N 6
-liste_N 1 10 100 1000 10000 20000
+len_liste_N 8
+liste_N 1 10 100 1000 10000 20000 30000 50000
 tmax 0.5
