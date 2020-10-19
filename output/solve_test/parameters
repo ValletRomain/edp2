@@ -1,5 +1,6 @@
 Parametres solve_test :
 
+keept_solexacte 1
 N 10
 m 1
 dt 0.100000
