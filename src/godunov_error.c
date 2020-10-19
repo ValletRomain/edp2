@@ -16,7 +16,7 @@ int main(int argc, char * argv[]){
     }
 
     godunov_error gderr = {0};
-
+    
     godunov_error_init_file(&gderr, argv[1]);
     godunov_error_compute(&gderr);
     godunov_error_plot(&gderr, argv[2]);

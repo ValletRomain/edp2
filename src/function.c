@@ -261,7 +261,7 @@ void godunov_error_init(godunov_error *pgderr,
                         double xmin, double xmax, double cfl, double tmax,
                         int m, int len_liste_N, int * liste_N,
                         char * option_error, char * option_godunov){
-
+    
     pgderr->name_file = name_file;
 
     pgderr->xmin = xmin;
@@ -274,7 +274,7 @@ void godunov_error_init(godunov_error *pgderr,
     pgderr->option_error = option_error;
     pgderr->option_godunov = option_godunov;
     godunov_error_parameters(pgderr, option_error);
-
+    
     pgderr->liste_error = malloc(len_liste_N * sizeof(double));
     pgderr->liste_time = malloc(len_liste_N * sizeof(unsigned long));
 
@@ -386,12 +386,12 @@ void godunov_error_init_file(godunov_error *pgderr, char * name_input){
     fclose(file);
 
     //--------------------------------------------------------
-    // Initialisation
-    printf("COUCOU\n");
-    void godunov_error_init(gderr, name_file,
-                        xmin, xmax, cfl, tmax,
-                        m, len_liste_N, liste_N,
-                        option_error, option_godunov);
+    // Initialisation    
+
+    godunov_error_init(pgderr, name_file,
+                    xmin, xmax, cfl, tmax,
+                    m, len_liste_N, liste_N,
+                    option_error, option_godunov);
 
     free(option_error);
     free(option_godunov);
@@ -402,14 +402,13 @@ void godunov_error_init_file(godunov_error *pgderr, char * name_input){
 // Ouput
 
 void godunov_error_plot(godunov_error *pgderr, char * output_path){
-
+    
     // Creation du dossier
     char * output_path_final = malloc(CHEMIN_MAX);
     strcpy(output_path_final, output_path);
     strcat(output_path_final, pgderr->name_file);
-
-    DIR * poutput = opendir(output_path_final);
-    closedir(poutput);
+    
+    mkdir(output_path_final, ACCESSPERMS);
 
     // Creation du fichier parameters
     gderr_create_parameters(pgderr, output_path_final);
@@ -422,10 +421,10 @@ void godunov_error_plot(godunov_error *pgderr, char * output_path){
 
     // Creation du fichier plotcom.gnu si il n'existe pas
     gderr_create_execute_gnu(pgderr, output_path_final);
-    
-    free(output_path_final);
 
     printf("Fin Plot godunov_error -> %s\n", output_path_final);
+
+    free(output_path_final);
 
 }
 
@@ -455,7 +454,7 @@ void godunov_error_compute(godunov_error *pgderr){
     for (int i=0; i<pgderr->len_liste_N; i++){
         
         godunov_init(&gd, pgderr->name_file,
-                        pgderr->tmax, pgderr->xmin, pgderr->xmax, pgderr->cfl,
+                        pgderr->xmin, pgderr->xmax, pgderr->cfl, pgderr->tmax,
                         pgderr->m, pgderr->liste_N[i],
                         pgderr->option_godunov);
 
@@ -464,7 +463,7 @@ void godunov_error_compute(godunov_error *pgderr){
         pgderr->liste_error[i] = pgderr->perror(gd.N+2, gd.m, gd.un, gd.sol);
         pgderr->liste_time[i] = gd.time;
 
-        printf("Compute error for N=%d error=%f time=%ld\n", gd.N, pgderr->liste_error[i], pgderr->liste_time[i]);   
+        printf("Compute error for N=%d error=%f time=%ld s\n", gd.N, pgderr->liste_error[i], pgderr->liste_time[i]);   
     }
 
     printf("Fin calcul des erreurs godunov_error\n");
