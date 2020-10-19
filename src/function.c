@@ -6,6 +6,8 @@
 #include <math.h>
 #include <time.h>
 #include <dirent.h>
+#include <sys/dir.h>
+#include <sys/stat.h>
 
 #include "parameters.c"
 #include "function_plot.c"
@@ -86,7 +88,7 @@ void godunov_init_file(godunov *pgd, char * name_input){
 
     // La consigne + le saut de ligne
     fgets(line, CHEMIN_MAX, file);
-    printf("Initialisation de %s", line);
+    printf("Initialisation <- %s\n", name_input);
     fgets(line, CHEMIN_MAX, file);
 
     // option :
@@ -154,29 +156,24 @@ void godunov_init_file(godunov *pgd, char * name_input){
 void godunov_plot(godunov *pgd, char * output_path){
     // ATTENTION, ne prend pas en compte les dimension m>1
 
-    // Si le dossier n'existe pas on en refait un                           <<<<---------- A FAIRE
-    // Et si un fichier .gnu n'exite pas on en cree un
-
     // Creation du dossier
     char * output_path_final = malloc(CHEMIN_MAX);
     strcpy(output_path_final, output_path);
     strcat(output_path_final, pgd->name_file);
-
-    DIR * poutput = opendir(output_path_final);
-    closedir(poutput);
-
+    
+    mkdir(output_path_final, ACCESSPERMS);
+    
     // Creation du fichier parameters
     gd_create_parameters(pgd, output_path_final);
-
+    
     // Creation du fichier .dat
     gd_create_plot(pgd, output_path_final);
     
     // Creation et execution du fichier plotcom.gnu
     gd_create_execute_gnu(pgd, output_path_final);
 
+    printf("Fin Plot godunov -> %s\n", output_path_final);
     free(output_path_final);
-
-    printf("Fin Plot godunov\n");
 }
 
 //-----------------------------------------------------------------------------
@@ -230,7 +227,7 @@ void godunov_solve(godunov *pgd, int option_visual){
         // mise à jour
         tnow += pgd->dt;
         if (option_visual){
-            printf("tnow = %f vmax = %f tmax = %f\n", tnow, vmax, pgd->tmax);
+            //printf("tnow = %f vmax = %f tmax = %f\n", tnow, vmax, pgd->tmax);
         }
         
         // conditions aux limites
@@ -280,6 +277,8 @@ void godunov_error_init(godunov_error *pgderr,
 
     pgderr->liste_error = malloc(len_liste_N * sizeof(double));
     pgderr->liste_time = malloc(len_liste_N * sizeof(unsigned long));
+
+    printf("Fin Initialisation\n");
 }
 
 void godunov_error_init_file(godunov_error *pgderr, char * name_input){
@@ -305,7 +304,6 @@ void godunov_error_init_file(godunov_error *pgderr, char * name_input){
     while ( (str=strtok(NULL, separators1)) != NULL){
         strcpy(name_file, str);
     }
-    printf("Test : name_file = %s\n", name_file);
 
     //--------------------------------------------------------
     // Lecture du fichier
@@ -314,7 +312,7 @@ void godunov_error_init_file(godunov_error *pgderr, char * name_input){
 
     // La consigne + le saut de ligne
     fgets(line, CHEMIN_MAX, file);
-    printf("Initialisation de %s", line);
+    printf("Initialisation <- %s\n", name_input);
     fgets(line, CHEMIN_MAX, file);
 
     // option_error :
@@ -389,7 +387,7 @@ void godunov_error_init_file(godunov_error *pgderr, char * name_input){
 
     //--------------------------------------------------------
     // Initialisation
-    
+    printf("COUCOU\n");
     void godunov_error_init(gderr, name_file,
                         xmin, xmax, cfl, tmax,
                         m, len_liste_N, liste_N,
@@ -404,11 +402,6 @@ void godunov_error_init_file(godunov_error *pgderr, char * name_input){
 // Ouput
 
 void godunov_error_plot(godunov_error *pgderr, char * output_path){
-
-    char * name_output;
-
-    // Si le dossier n'existe pas on en refait un                           <<<<---------- A FAIRE
-    // Et si un fichier .gnu n'exite pas on en cree un
 
     // Creation du dossier
     char * output_path_final = malloc(CHEMIN_MAX);
@@ -432,7 +425,7 @@ void godunov_error_plot(godunov_error *pgderr, char * output_path){
     
     free(output_path_final);
 
-    printf("Fin Plot godunov_error\n");
+    printf("Fin Plot godunov_error -> %s\n", output_path_final);
 
 }
 
@@ -455,7 +448,7 @@ void godunov_error_free(godunov_error * pgd){
 // Calcul
 
 void godunov_error_compute(godunov_error *pgderr){
-    // Calcul l'erreur en norme L1
+    // Calcul l'erreur
 
     godunov gd;
     
@@ -471,8 +464,7 @@ void godunov_error_compute(godunov_error *pgderr){
         pgderr->liste_error[i] = pgderr->perror(gd.N+2, gd.m, gd.un, gd.sol);
         pgderr->liste_time[i] = gd.time;
 
-        printf("Compute error for N=%d error=%f time=%ld\n", gd.N, pgderr->liste_error[i], pgderr->liste_time[i]); // <<<<----- L'ERREUR EST LA !!!!!!!!!!!
-        
+        printf("Compute error for N=%d error=%f time=%ld\n", gd.N, pgderr->liste_error[i], pgderr->liste_time[i]);   
     }
 
     printf("Fin calcul des erreurs godunov_error\n");

@@ -19,10 +19,10 @@ void gd_create_parameters(godunov * pgd, char * output_path){
     strcpy(name_file, output_path);
     strcat(name_file, "/");
     strcat(name_file, "parameters");
-
+    
     FILE *fic = fopen(name_file, "w");
-
-    fprintf(fic, "Parametres %s:\n\n", pgd->name_file);
+    
+    fprintf(fic, "Parametres %s :\n\n", pgd->name_file);
     fprintf(fic, "N %d\n", pgd->N);
     fprintf(fic, "m %d\n", pgd->m);
     fprintf(fic, "dt %f\n", pgd->dt);
@@ -31,7 +31,7 @@ void gd_create_parameters(godunov * pgd, char * output_path){
     fprintf(fic, "xmax %f\n", pgd->xmax);
     fprintf(fic, "cfl %f\n", pgd->cfl);
     fprintf(fic, "time %ld\n", pgd->time);
-
+    
     fclose(fic);
     free(name_file);
 }
@@ -64,11 +64,11 @@ void gd_create_execute_gnu(godunov * pgd, char * output_path){
     
     fprintf(fic, "set terminal pngcairo\n");
     fprintf(fic, "set output \'%s/graphe.png\'\n\n", output_path);
-    fprintf(fic, "set title \"Resolution de l\'equation de transport\n");
+    fprintf(fic, "set title \"Resolution de l\'equation de transport\"\n");
     fprintf(fic, "set xlabel \"x\"\n");
     fprintf(fic, "set ylabel \"u\"\n\n");
     fprintf(fic, "set yrange [0:1.2]\n\n");
-    fprintf(fic, "plot \'%s/plot.dat\' using 1:2 title \"solution exacte\", \\ \n", output_path);
+    fprintf(fic, "plot \'%s/plot.dat\' using 1:2 title \"solution exacte\", ", output_path);
     fprintf(fic, "\'%s/plot.dat\' using 1:3 title \"soluton numerique\"", output_path);
 
     fclose(fic);
