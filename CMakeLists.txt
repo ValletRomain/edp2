@@ -17,6 +17,6 @@ project(godunov_error)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c+11")
 
 set(GODUNOV_ERROR_FILES src/godunov_error.c)
-add_executable(godunov_error ${GODUNOV_FILES})
+add_executable(godunov_error ${GODUNOV_ERROR_FILES})
 
 target_link_libraries(godunov_error PRIVATE m)
