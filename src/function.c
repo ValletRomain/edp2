@@ -425,11 +425,8 @@ void godunov_error_plot(godunov_error *pgderr, char * output_path){
     // Creation du fichier parameters
     gderr_create_parameters(pgderr, output_path_final);
 
-    // Creation du fichier error.dat
-    gderr_create_error(pgderr, output_path_final);
-    
-    // Creation du fichier time.dat
-    gderr_create_time(pgderr, output_path_final);
+    // Creation du fichier plot.dat
+    gderr_create_plot(pgderr, output_path_final);
 
     // Creation du fichier plotcom.gnu si il n'existe pas
     gderr_create_execute_gnu(pgderr, output_path_final);

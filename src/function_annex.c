@@ -173,37 +173,18 @@ void gderr_create_parameters(godunov_error * pgderr, char * output_path){
     free(name_output);
 }
 
-void gderr_create_error(godunov_error * pgderr, char * output_path){
+void gderr_create_plot(godunov_error * pgderr, char * output_path){
 
     char * name_output = malloc(CHEMIN_MAX);
     strcpy(name_output, output_path);
     strcat(name_output, "/");
-    strcat(name_output, "error.dat");
+    strcat(name_output, "plot.dat");
 
     FILE *fic = fopen(name_output, "w");
 
     for (int i = 0; i < pgderr->len_liste_N; i++){
 
-        fprintf(fic, "%d %f\n", pgderr->liste_N[i], pgderr->liste_error[i]);
-
-    }
-
-    fclose(fic);
-    free(name_output);
-}
-
-void gderr_create_time(godunov_error * pgderr, char * output_path){
-
-    char * name_output = malloc(CHEMIN_MAX);
-    strcpy(name_output, output_path);
-    strcat(name_output, "/");
-    strcat(name_output, "time.dat");
-
-    FILE *fic = fopen(name_output, "w");
-
-    for (int i = 0; i < pgderr->len_liste_N; i++){
-
-        fprintf(fic, "%d %ld\n", pgderr->liste_N[i], pgderr->liste_time[i]);
+        fprintf(fic, "%d %f %ld\n", pgderr->liste_N[i], pgderr->liste_error[i], pgderr->liste_time[i]);
 
     }
 
@@ -227,7 +208,7 @@ void gderr_create_execute_gnu(godunov_error * pgderr, char * output_path){
     fprintf(fic, "set xlabel \"N\"\n");
     fprintf(fic, "set ylabel \"error\"\n\n");
     fprintf(fic, "set logscale x 10\n");
-    fprintf(fic, "plot \'%s/error.dat\' using 1:2 title \"error\"\n\n", output_path);
+    fprintf(fic, "plot \'%s/plot.dat\' using 1:2 title \"error\"\n\n", output_path);
     fprintf(fic, "# Graphic of time\n");
     fprintf(fic, "set output \'%s/time.png\'\n\n", output_path);
     fprintf(fic, "set title \"Duree\"\n");
@@ -235,7 +216,7 @@ void gderr_create_execute_gnu(godunov_error * pgderr, char * output_path){
     fprintf(fic, "set ylabel \"time (s)\"\n\n");
     fprintf(fic, "set logscale x 10\n");
     fprintf(fic, "set yrange [-1:10]\n\n");
-    fprintf(fic, "plot \'%s/time.dat\' using 1:2 title \"time\"", output_path);
+    fprintf(fic, "plot \'%s/plot.dat\' using 1:3 title \"time\"", output_path);
     
     fclose(fic);
     free(name_file);
