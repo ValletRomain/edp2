@@ -41,10 +41,10 @@ void godunov_parameters(godunov * pgd, char * option){
 void godunov_error_parameters(godunov_error * pgderr, char * option_error){
 
     if (option_error = "norm_L1"){
-        pgderr->perror = error_L1;
+        pgderr->perror = norm_L1;
     }
     else if (option_error = "norm_L2"){
-        pgderr->perror = error_L2;
+        pgderr->perror = norm_L2;
     }
     else {
         raler(0,"The option \"%s\" dot not exist", option_error);
