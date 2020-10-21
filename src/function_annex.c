@@ -8,6 +8,7 @@
 #include <dirent.h>
 
 #include "godunov.h"
+#include "parameters.c"
 
 #define CHEMIN_MAX 512
 
