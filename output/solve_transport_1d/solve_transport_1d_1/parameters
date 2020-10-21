@@ -1,5 +1,6 @@
 Parametres solve_transport_1d_1 :
 
+keept_solexacte 1
 N 100
 m 1
 dt 0.010000
