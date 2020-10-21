@@ -7,6 +7,7 @@
 #include <time.h>
 #include <dirent.h>
 
+#include "raler.c"
 #include "godunov.h"
 #include "parameters.c"
 
@@ -31,6 +32,10 @@ void godunov_parameters(godunov * pgd, char * option){
             pgd->psolexacte = solexacte_trans1;
         }
     }
+    else {
+        raler(0,"The option \"%s\" dot not exist", option);
+    }
+    
 }
 
 void godunov_error_parameters(godunov_error * pgderr, char * option_error){
@@ -40,6 +45,9 @@ void godunov_error_parameters(godunov_error * pgderr, char * option_error){
     }
     else if (option_error = "norm_L2"){
         pgderr->perror = error_L2;
+    }
+    else {
+        raler(0,"The option \"%s\" dot not exist", option_error);
     }
 }
 

@@ -5,7 +5,6 @@
 #include <stdbool.h>
 #include <math.h>
 
-#include "raler.c"
 #include "function.c"
 
 int main(int argc, char * argv[]){

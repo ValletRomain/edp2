@@ -9,8 +9,7 @@
 #include <sys/dir.h>
 #include <sys/stat.h>
 
-#include "parameters.c"
-#include "function_plot.c"
+#include "function_annex.c"
 
 #define CHEMIN_MAX 512
 
@@ -280,10 +279,14 @@ void godunov_error_init(godunov_error *pgderr,
     pgderr->len_liste_N = len_liste_N;
     pgderr->liste_N = liste_N;
     pgderr->tmax = tmax;
-    pgderr->option_error = option_error;
-    pgderr->option_godunov = option_godunov;
+
+    pgderr->option_error = malloc(CHEMIN_MAX);
+    pgderr->option_godunov = malloc(CHEMIN_MAX);
+    strcpy(pgderr->option_error, option_error);
+    strcpy(pgderr->option_godunov, option_godunov);
+
     godunov_error_parameters(pgderr, option_error);
-    
+
     pgderr->liste_error = malloc(len_liste_N * sizeof(double));
     pgderr->liste_time = malloc(len_liste_N * sizeof(unsigned long));
 
@@ -396,7 +399,7 @@ void godunov_error_init_file(godunov_error *pgderr, char * name_input){
 
     //--------------------------------------------------------
     // Initialisation    
-
+    
     godunov_error_init(pgderr, name_file,
                     xmin, xmax, cfl, tmax,
                     m, len_liste_N, liste_N,
@@ -461,7 +464,7 @@ void godunov_error_compute(godunov_error *pgderr){
     godunov gd;
     
     for (int i=0; i<pgderr->len_liste_N; i++){
-        
+
         godunov_init(&gd, pgderr->name_file, 1,
                         pgderr->xmin, pgderr->xmax, pgderr->cfl, pgderr->tmax,
                         pgderr->m, pgderr->liste_N[i],

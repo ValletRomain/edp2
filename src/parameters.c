@@ -68,23 +68,23 @@ double error_L1(int I, int m, double * a, double * b){
      
      for (int i=0; i<I; i++){
          for (int iv=0; iv<m; iv++){
-            norme_L1 += abs(a[i*m+iv] - b[i*m+iv]);
+            norme_L1 += fabs(a[i*m+iv] - b[i*m+iv]);
          }
      }
 
-     return sqrt(norme_L1);
+     return norme_L1;
 }
 
 double error_L2(int I, int m, double * a, double * b){
     // Calcul l'erreur en norme L_1 entre le tableau a et le tableau b
 
-     double norme_L1 = 0;
+     double norme_L2 = 0;
 
      for (int i=0; i<I; i++){
          for (int iv=0; i<m; i++){
-            norme_L1 += (a[i*m+iv] - b[i*m+iv]) * (a[i*m+iv] - b[i*m+iv]);
+            norme_L2 += (a[i*m+iv] - b[i*m+iv]) * (a[i*m+iv] - b[i*m+iv]);
          }
      }
 
-     return norme_L1;
+     return norme_L2;
 }
