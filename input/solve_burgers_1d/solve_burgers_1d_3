@@ -1,7 +1,7 @@
 Resolution du probleme du transport par godunov : example 1
 
 keept_solexacte 1
-option burgers1
+option burgers_1d_1
 xmin -1
 xmax 1
 cfl 0.5
