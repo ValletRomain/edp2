@@ -20,7 +20,7 @@
 
 void godunov_parameters(godunov * pgd, char * option){
 
-    if (option = "transport_1d_1"){
+    if (strcmp(option,"transport_1d_1") == 0){
         pgd->pfluxnum = fluxnum_trans1;
         pgd->plambda_ma = lambda_ma_trans1;
         pgd->pboundary_spatial = boundary_spatial_trans1;
@@ -31,7 +31,7 @@ void godunov_parameters(godunov * pgd, char * option){
             pgd->psolexacte = solexacte_trans1;
         }
     }
-    else if (option = "burgers1"){
+    else if (strcmp(option,"burgers_1d_1") == 0){
         pgd->pfluxnum = fluxnum_burgers1;
         pgd->plambda_ma = lambda_ma_burgers1;
         pgd->pboundary_spatial = boundary_spatial_burgers1;
@@ -40,6 +40,17 @@ void godunov_parameters(godunov * pgd, char * option){
 
         if (pgd->keept_solexacte){
             pgd->psolexacte = solexacte_burgers1;
+        }
+    }
+    else if (strcmp(option,"burgers_1d_2") == 0){
+        pgd->pfluxnum = fluxnum_burgers2;
+        pgd->plambda_ma = lambda_ma_burgers2;
+        pgd->pboundary_spatial = boundary_spatial_burgers2;
+        pgd->pboundary_temporal_left = boundary_temporal_left_burgers2;
+        pgd->pboundary_temporal_right = boundary_temporal_right_burgers2;
+
+        if (pgd->keept_solexacte){
+            pgd->psolexacte = solexacte_burgers2;
         }
     }
     else {
@@ -128,7 +139,7 @@ void gd_create_execute_gnu(godunov * pgd, char * output_path){
     
     fprintf(fic, "set terminal pngcairo\n");
     fprintf(fic, "set output \'%s/graphe.png\'\n\n", output_path);
-    fprintf(fic, "set title \"Resolution de l\'equation de transport tmax=%f\"\n", pgd->tmax);
+    fprintf(fic, "set title \"Resolution de %s tmax=%f\"\n", pgd->option, pgd->tmax);
     fprintf(fic, "set xlabel \"x\"\n");
     fprintf(fic, "set ylabel \"u\"\n\n");
     fprintf(fic, "set yrange [0:1.2]\n\n");
@@ -214,7 +225,7 @@ void gderr_create_execute_gnu(godunov_error * pgderr, char * output_path){
     fprintf(fic, "set terminal pngcairo\n\n");
     fprintf(fic, "# Graphic of error\n");
     fprintf(fic, "set output \'%s/error.png\'\n\n", output_path);
-    fprintf(fic, "set title \"Erreur en norme L1\"\n");
+    fprintf(fic, "set title \"Erreur du schéma de Godunov pour %s en %s\"\n", pgderr->option_godunov, pgderr->option_error);
     fprintf(fic, "set xlabel \"N\"\n");
     fprintf(fic, "set ylabel \"error\"\n\n");
     fprintf(fic, "set logscale x 10\n");

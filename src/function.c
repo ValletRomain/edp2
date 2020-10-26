@@ -38,6 +38,8 @@ void godunov_init(godunov *pgd,
     pgd->cfl = cfl;
     pgd->tmax = tmax;
     godunov_parameters(pgd, option);
+    pgd->option = malloc(CHEMIN_MAX);
+    strcpy(pgd->option, option);
 
     pgd->dx = (xmax - xmin) / N;
 
@@ -70,7 +72,7 @@ void godunov_init_file(godunov *pgd, char * name_input){
     char * str = malloc(CHEMIN_MAX);
     const char * separators = " \n";
     const char * separators1 = "/";
-    
+
     //--------------------------------------------------------
     // Sauvegarde du nom du fichier
     
@@ -105,7 +107,8 @@ void godunov_init_file(godunov *pgd, char * name_input){
 
     str = strtok(line, separators);
     str = strtok(NULL, separators);
-    char * option = str;
+    char * option = malloc(CHEMIN_MAX);
+    strcpy(option, str);
 
     // xmin :
     fgets(line, CHEMIN_MAX, file);
@@ -154,8 +157,7 @@ void godunov_init_file(godunov *pgd, char * name_input){
     //--------------------------------------------------------
     // Calcul des autres valeurs
     
-    godunov_init(pgd, name_file, keept_solexacte, xmin, xmax, tmax, cfl, m, N, option);
-
+    godunov_init(pgd, name_file, keept_solexacte, xmin, xmax, cfl, tmax, m, N, option);
 }
 
 

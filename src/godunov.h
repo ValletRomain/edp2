@@ -15,6 +15,7 @@ typedef struct godunov{
     double cfl;
     double dt, dx;
     double tmax;
+    char * option;
 
     void (*pfluxnum)(double*, double*, double, double*);
     double (*plambda_ma)(double*);

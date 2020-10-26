@@ -24,7 +24,7 @@ void fluxnum_trans1(double *a, double *b, double vmax, double *flux){
      flux[0] = _C1 * a[0];
 }
 
-void solexacte_trans1(double x, double t, double *w){
+void solexacte_trans1(const double x, const double t, double *w){
 
      double uL = exp(x/_C1 - t);
      double uR = 0;
@@ -54,7 +54,7 @@ void boundary_temporal_right_trans1(double xmax, double t, double *w){
 
 
 //-----------------------------------------------------------------------------
-// Example 1 of resolution of equation of burgers
+// Example 1 of resolution of equation of burgers avec u_L > u_R
 
 #define u_L1 2
 #define u_R1 1
@@ -82,7 +82,7 @@ void solexacte_burgers1(double x, double t, double *w){
 
 void boundary_spatial_burgers1(double x, double *w){
 
-    solexacte_trans1(x, 0, w);
+    solexacte_burgers1(x, 0, w);
 }
 
 void boundary_temporal_left_burgers1(double xmin, double t, double *w){
@@ -93,6 +93,52 @@ void boundary_temporal_left_burgers1(double xmin, double t, double *w){
 void boundary_temporal_right_burgers1(double xmax, double t, double *w){
 
     solexacte_burgers1(xmax, t, w);
+}
+
+
+//-----------------------------------------------------------------------------
+// Example 1 of resolution of equation of burgers avec u_L < u_R
+
+#define u_L2 2
+#define u_R2 1
+
+double lambda_ma_burgers2(double *a){
+     return a[0];
+}
+
+void fluxnum_burgers2(double *a, double *b, double vmax, double *flux){
+    
+     flux[0] = (b[0]-a[0]) / 2 * ((a[0]+b[0])/2 - vmax);
+}
+
+void solexacte_burgers2(double x, double t, double *w){
+
+    double sigma = (u_L1+u_R1) / 2;
+
+     if ((x < u_L2 * t) || ((x=0) && (t = 0))){ // je force sole(0,0) = u_L
+         w[0] = u_L1;
+     }
+     else if (x > u_R2 * t){
+         w[0] = u_R1;
+     }
+     else {
+         w[0] = x / t;
+     }
+}
+
+void boundary_spatial_burgers2(double x, double *w){
+
+    solexacte_burgers2(x, 0, w);
+}
+
+void boundary_temporal_left_burgers2(double xmin, double t, double *w){
+
+    solexacte_burgers2(xmin, t, w);
+}
+
+void boundary_temporal_right_burgers2(double xmax, double t, double *w){
+
+    solexacte_burgers2(xmax, t, w);
 }
 
 
