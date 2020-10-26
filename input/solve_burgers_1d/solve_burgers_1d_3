@@ -2,9 +2,9 @@ Resolution du probleme du transport par godunov : example 1
 
 keept_solexacte 1
 option burgers_1d_1
-xmin -1
-xmax 1
+xmin -2
+xmax 2
 cfl 0.5
 m 1
-N 100
+N 1000
 tmax 2
