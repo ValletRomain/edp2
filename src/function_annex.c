@@ -21,7 +21,6 @@
 void godunov_parameters(godunov * pgd, char * option){
 
     if (option = "transport_1d_1"){
-        pgd->pspeed = speed_trans1;
         pgd->pfluxnum = fluxnum_trans1;
         pgd->plambda_ma = lambda_ma_trans1;
         pgd->pboundary_spatial = boundary_spatial_trans1;
@@ -30,6 +29,17 @@ void godunov_parameters(godunov * pgd, char * option){
 
         if (pgd->keept_solexacte){
             pgd->psolexacte = solexacte_trans1;
+        }
+    }
+    else if (option = "burgers1"){
+        pgd->pfluxnum = fluxnum_burgers1;
+        pgd->plambda_ma = lambda_ma_burgers1;
+        pgd->pboundary_spatial = boundary_spatial_burgers1;
+        pgd->pboundary_temporal_left = boundary_temporal_left_burgers1;
+        pgd->pboundary_temporal_right = boundary_temporal_right_burgers1;
+
+        if (pgd->keept_solexacte){
+            pgd->psolexacte = solexacte_burgers1;
         }
     }
     else {
@@ -72,8 +82,8 @@ void gd_create_parameters(godunov * pgd, char * output_path){
     fprintf(fic, "keept_solexacte %d\n", pgd->keept_solexacte);
     fprintf(fic, "N %d\n", pgd->N);
     fprintf(fic, "m %d\n", pgd->m);
-    fprintf(fic, "dt %f\n", pgd->dt);
     fprintf(fic, "dx %f\n", pgd->dx);
+    fprintf(fic, "tmax %f\n", pgd->tmax);
     fprintf(fic, "xmin %f\n", pgd->xmin);
     fprintf(fic, "xmax %f\n", pgd->xmax);
     fprintf(fic, "cfl %f\n", pgd->cfl);
@@ -118,13 +128,13 @@ void gd_create_execute_gnu(godunov * pgd, char * output_path){
     
     fprintf(fic, "set terminal pngcairo\n");
     fprintf(fic, "set output \'%s/graphe.png\'\n\n", output_path);
-    fprintf(fic, "set title \"Resolution de l\'equation de transport\"\n");
+    fprintf(fic, "set title \"Resolution de l\'equation de transport tmax=%f\"\n", pgd->tmax);
     fprintf(fic, "set xlabel \"x\"\n");
     fprintf(fic, "set ylabel \"u\"\n\n");
     fprintf(fic, "set yrange [0:1.2]\n\n");
-    fprintf(fic, "plot \'%s/plot.dat\' using 1:2 title \"solution numerique\"", output_path);
+    fprintf(fic, "plot \'%s/plot.dat\' using 1:2 title \"solution numerique\" w lp", output_path);
     if (pgd->keept_solexacte){
-        fprintf(fic, ", \'%s/plot.dat\' using 1:3 title \"soluton exacte\"", output_path);
+        fprintf(fic, ", \'%s/plot.dat\' using 1:3 title \"soluton exacte\" w lp", output_path);
     }
     
     
@@ -208,7 +218,7 @@ void gderr_create_execute_gnu(godunov_error * pgderr, char * output_path){
     fprintf(fic, "set xlabel \"N\"\n");
     fprintf(fic, "set ylabel \"error\"\n\n");
     fprintf(fic, "set logscale x 10\n");
-    fprintf(fic, "plot \'%s/plot.dat\' using 1:2 title \"error\"\n\n", output_path);
+    fprintf(fic, "plot \'%s/plot.dat\' using 1:2 title \"error\" w lp\n\n", output_path);
     fprintf(fic, "# Graphic of time\n");
     fprintf(fic, "set output \'%s/time.png\'\n\n", output_path);
     fprintf(fic, "set title \"Duree\"\n");
@@ -216,7 +226,7 @@ void gderr_create_execute_gnu(godunov_error * pgderr, char * output_path){
     fprintf(fic, "set ylabel \"time (s)\"\n\n");
     fprintf(fic, "set logscale x 10\n");
     fprintf(fic, "set yrange [-1:10]\n\n");
-    fprintf(fic, "plot \'%s/plot.dat\' using 1:3 title \"time\"", output_path);
+    fprintf(fic, "plot \'%s/plot.dat\' using 1:3 title \"time\" w lp", output_path);
     
     fclose(fic);
     free(name_file);

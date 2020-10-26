@@ -40,7 +40,6 @@ void godunov_init(godunov *pgd,
     godunov_parameters(pgd, option);
 
     pgd->dx = (xmax - xmin) / N;
-    pgd->dt = pgd->dx * cfl / pgd->pspeed();
 
     pgd->xi = malloc((N+2) * sizeof(double) * m);
     pgd->un = malloc((N+2) * sizeof(double) * m);
@@ -218,24 +217,25 @@ void godunov_solve(godunov *pgd, int option_visual){
         // calcul de la vitesse max
         double vmax = 0;
         for (int i = 0; i < pgd->N + 2; i++){
-            double vloc = pgd->plambda_ma(pgd->un + m * i);
+            double vloc = fabs(pgd->plambda_ma(pgd->un + m * i));
             vmax = vmax > vloc ? vmax : vloc;
         }
         
         pgd->dt = pgd->cfl * pgd->dx / vmax;
         for(int i = 1; i < pgd->N+1; i++){
             double flux[m];
-            pgd->pfluxnum(pgd->un + i*m, pgd->un + (i+1)*m, flux);
+            pgd->pfluxnum(pgd->un + i*m, pgd->un + (i+1)*m, vmax, flux);
             for(int iv = 0; iv < m; iv++){
                 pgd->unp1[i*m + iv] = pgd->un[i*m + iv] - pgd->dt/pgd->dx * flux[iv];
             }
-            pgd->pfluxnum(pgd->un + (i - 1) * m, pgd->un + i * m, flux);
+            pgd->pfluxnum(pgd->un + (i - 1) * m, pgd->un + i * m, vmax, flux);
             for(int iv = 0; iv < m;iv++){
                 pgd->unp1[i * m + iv] += pgd->dt / pgd->dx * flux[iv];
             }
         }
         // mise à jour
         tnow += pgd->dt;
+
         if (option_visual){
             printf("tnow = %f vmax = %f tmax = %f\n", tnow, vmax, pgd->tmax);
         }

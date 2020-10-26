@@ -16,8 +16,7 @@ typedef struct godunov{
     double dt, dx;
     double tmax;
 
-    double (*pspeed)(void);
-    void (*pfluxnum)(double*, double*, double*);
+    void (*pfluxnum)(double*, double*, double, double*);
     double (*plambda_ma)(double*);
 
     void (*pboundary_spatial)(double, double*);
@@ -29,7 +28,7 @@ typedef struct godunov{
 
     // Resultats du probleme
     unsigned long time;
-
+    
     double *xi; // centre des milieux des cellules
     double *un; // solution a l'instant n
     double *unp1; // solution a l'instant n+1
