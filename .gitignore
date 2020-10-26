@@ -8,4 +8,5 @@ Makefile
 *.bbl
 *.log
 *.gz
+*.blg
 Latex/report.pdf
