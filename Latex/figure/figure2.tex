@@ -1,0 +1,23 @@
+\begin{tikzpicture}[scale=2.5]
+\draw[color=white, fill=blue] (-2.2,0) -- (0,0) -- (1,1) -- (1,2) -- (-2.2,2) -- cycle;
+\draw (-1.2,1) node {zone 1};
+
+\draw[color=white, fill=green] (0,0) -- (1,0) -- (1,1) -- cycle;
+\draw (0.65,0.3) node {zone 2};
+
+\draw[color=white, fill=red] (1,0) -- (2.2,0) -- (2.2,2) -- (1,1) -- cycle;
+\draw (1.6,0.6) node {zone 3};
+
+\draw[color=white, fill=orange] (1,1) -- (2.2,2) -- (1,2) -- cycle;
+\draw (1.4,1.7) node {zone 4};
+
+\draw[->] (-2.2,0) -- (2.2,0);
+\draw (2.2,0) node[right] {$x$};
+\draw[->] (0,0) -- (0,2);
+\draw (0,2) node[above] {$t$};
+\draw (0,0) node[below] {$O$};
+\draw (1,-0.05) -- (1,0.05);
+\draw (1,-0.025) node[below] {$1$};
+\draw (-0.05,1) -- (0.05,1);
+\draw (0,1) node[left] {$1$};
+\end{tikzpicture}
