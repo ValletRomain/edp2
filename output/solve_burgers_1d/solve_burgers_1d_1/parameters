@@ -1,0 +1,11 @@
+Parametres solve_burgers_1d_1 :
+
+keept_solexacte 1
+N 1000
+m 1
+dx 0.004000
+tmax 0.500000
+xmin -2.000000
+xmax 2.000000
+cfl 0.500000
+time 0
