@@ -142,7 +142,6 @@ void gd_create_execute_gnu(godunov * pgd, char * output_path){
     fprintf(fic, "set title \"Resolution de %s tmax=%f\"\n", pgd->option, pgd->tmax);
     fprintf(fic, "set xlabel \"x\"\n");
     fprintf(fic, "set ylabel \"u\"\n\n");
-    fprintf(fic, "set yrange [0:1.2]\n\n");
     fprintf(fic, "plot \'%s/plot.dat\' using 1:2 title \"solution numerique\" w lp", output_path);
     if (pgd->keept_solexacte){
         fprintf(fic, ", \'%s/plot.dat\' using 1:3 title \"soluton exacte\" w lp", output_path);
@@ -236,7 +235,6 @@ void gderr_create_execute_gnu(godunov_error * pgderr, char * output_path){
     fprintf(fic, "set xlabel \"N\"\n");
     fprintf(fic, "set ylabel \"time (s)\"\n\n");
     fprintf(fic, "set logscale x 10\n");
-    fprintf(fic, "set yrange [-1:10]\n\n");
     fprintf(fic, "plot \'%s/plot.dat\' using 1:3 title \"time\" w lp", output_path);
     
     fclose(fic);
