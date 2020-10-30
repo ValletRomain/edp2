@@ -12,7 +12,7 @@
 #include "parameters.c"
 
 #define CHEMIN_MAX 512
-
+#define BORDER 0.1
 
 //-----------------------------------------------------------------------------
 // Manage of parameters
@@ -130,6 +130,8 @@ void gd_create_plot(godunov * pgd, char * output_path){
 
 void gd_create_execute_gnu(godunov * pgd, char * output_path){
 
+    // Create of border
+
     char * name_file = malloc(CHEMIN_MAX);
     strcpy(name_file, output_path);
     strcat(name_file, "/");
@@ -142,9 +144,12 @@ void gd_create_execute_gnu(godunov * pgd, char * output_path){
     fprintf(fic, "set title \"Resolution de %s tmax=%f\"\n", pgd->option, pgd->tmax);
     fprintf(fic, "set xlabel \"x\"\n");
     fprintf(fic, "set ylabel \"u\"\n\n");
-    fprintf(fic, "plot \'%s/plot.dat\' using 1:2 title \"solution numerique\" w lp", output_path);
+    fprintf(fic, "stats \'%s/plot.dat\' using 1:2 nooutput\n", output_path);
+    fprintf(fic, "set xrange [STATS_min_x:STATS_max_x]\n");
+    fprintf(fic, "set yrange [STATS_min_y - %f * (STATS_max_y-STATS_min_y): STATS_max_y + %f * (STATS_max_y-STATS_min_y)]\n\n", BORDER, BORDER);
+    fprintf(fic, "plot \'%s/plot.dat\' using 1:2 title \"solution numerique\" w lp pt 0", output_path);
     if (pgd->keept_solexacte){
-        fprintf(fic, ", \'%s/plot.dat\' using 1:3 title \"soluton exacte\" w lp", output_path);
+        fprintf(fic, ", \'%s/plot.dat\' using 1:3 title \"soluton exacte\" w lp pt 0", output_path);
     }
     
     
@@ -228,13 +233,21 @@ void gderr_create_execute_gnu(godunov_error * pgderr, char * output_path){
     fprintf(fic, "set xlabel \"N\"\n");
     fprintf(fic, "set ylabel \"error\"\n\n");
     fprintf(fic, "set logscale x 10\n");
+    fprintf(fic, "stats \'%s/plot.dat\' using 1:2 nooutput\n", output_path);
+    fprintf(fic, "set xrange [STATS_min_x:STATS_max_x]\n");
+    fprintf(fic, "set yrange [0: STATS_max_y + %f * (STATS_max_y-STATS_min_y)]\n\n", BORDER);
     fprintf(fic, "plot \'%s/plot.dat\' using 1:2 title \"error\" w lp\n\n", output_path);
+    fprintf(fic, "reset\n\n");
     fprintf(fic, "# Graphic of time\n");
     fprintf(fic, "set output \'%s/time.png\'\n\n", output_path);
     fprintf(fic, "set title \"Duree\"\n");
     fprintf(fic, "set xlabel \"N\"\n");
     fprintf(fic, "set ylabel \"time (s)\"\n\n");
-    fprintf(fic, "set logscale x 10\n");
+    //fprintf(fic, "set logscale x 10\n");
+    fprintf(fic, "set autoscale y\n");
+    fprintf(fic, "stats \'%s/plot.dat\' using 1:3 nooutput\n", output_path);
+    fprintf(fic, "set xrange [STATS_min_x:STATS_max_x]\n");
+    //fprintf(fic, "set yrange [0: 1 + STATS_max_y + %f * (STATS_max_y-STATS_min_y)]\n\n", BORDER);
     fprintf(fic, "plot \'%s/plot.dat\' using 1:3 title \"time\" w lp", output_path);
     
     fclose(fic);
