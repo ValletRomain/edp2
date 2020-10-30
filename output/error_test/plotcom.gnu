@@ -3,12 +3,16 @@ set terminal pngcairo
 # Graphic of error
 set output 'output/error_test/error.png'
 
-set title "Erreur en norme L1"
+set title "Erreur du schéma de Godunov pour transport_1d_1 en norm_inf"
 set xlabel "N"
 set ylabel "error"
 
 set logscale x 10
-plot 'output/error_test/plot.dat' using 1:2 title "error"
+stats 'output/error_test/plot.dat' using 1:2 nooutput
+set xrange [STATS_min_x:STATS_max_x]
+set yrange [0: STATS_max_y + 0.100000 * (STATS_max_y-STATS_min_y)]
+
+plot 'output/error_test/plot.dat' using 1:2 title "error" w lp
 
 # Graphic of time
 set output 'output/error_test/time.png'
@@ -17,7 +21,7 @@ set title "Duree"
 set xlabel "N"
 set ylabel "time (s)"
 
-set logscale x 10
-set yrange [-1:10]
-
-plot 'output/error_test/plot.dat' using 1:3 title "time"
+set autoscale y
+stats 'output/error_test/plot.dat' using 1:3 nooutput
+set xrange [STATS_min_x:STATS_max_x]
+plot 'output/error_test/plot.dat' using 1:3 title "time" w lp
