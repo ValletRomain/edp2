@@ -10,3 +10,4 @@ Makefile
 *.gz
 *.blg
 Latex/report.pdf
+out_to_latex.bash
