@@ -1,10 +1,10 @@
 Test solve
 
 keept_solexacte 1
-option burgers_1d_1
+option transport_1d_1
 xmin -2
 xmax 2
 cfl 0.5
 m 1
-N 100
-tmax 0.5
+N 1000
+tmax 1.5

@@ -1,7 +1,7 @@
 set terminal pngcairo
 set output 'output/solve_test/graphe.png'
 
-set title "Resolution de burgers_1d_1 tmax=0.500000"
+set title "Resolution de transport_1d_1 tmax=1.500000"
 set xlabel "x"
 set ylabel "u"
 

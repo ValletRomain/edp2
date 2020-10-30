@@ -1,10 +1,10 @@
 Parametres solve_test :
 
 keept_solexacte 1
-N 100
+N 1000
 m 1
-dx 0.040000
-tmax 0.500000
+dx 0.004000
+tmax 1.500000
 xmin -2.000000
 xmax 2.000000
 cfl 0.500000
