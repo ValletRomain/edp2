@@ -4,18 +4,18 @@
 typedef struct godunov{
 
     // Name of different file or folder
-    char * name_file;
+    char * name_file; //name of file of input
 
     // Option
-    int keept_solexacte;
+    int keept_solexacte; //keept the solution (=1) or not (=0)
 
     // Parametre du probleme
-    int m, N;
+    int m, N; // m dimension of problem, N number of space point
     double xmin, xmax;
     double cfl;
     double dt, dx;
     double tmax;
-    char * option;
+    char * option; // equation is resolve (burgers, transport...)
 
     void (*pfluxnum)(double*, double*, double, double*);
     double (*plambda_ma)(double*);
@@ -54,9 +54,7 @@ typedef struct godunov_error{
     int len_liste_N;
     int * liste_N;
 
-    double (*perror)(int, int, double*, double*);
-
-    //godunov * liste_godunov;
+    double (*perror)(int, int, double*, double*); // error (norm_L1, L2, inf...)
 
     double * liste_error;
     unsigned long * liste_time;
@@ -67,7 +65,8 @@ void godunov_init(godunov *pgd,
                     char * name_file, int keept_solution,
                     double xmin, double xmax, double cfl, double tmax,
                     int m, int N,
-                    char * option);
+                    char * option,
+                    int option_visual);
 
 void godunov_init_file(godunov *pgd, char * name_input);
 

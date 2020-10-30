@@ -19,6 +19,8 @@
 //-----------------------------------------------------------------------------
 
 void godunov_parameters(godunov * pgd, char * option){
+    // Distrib the function pointers for godunov pgd depending on option
+    // If option do not exist, a alert message is send
 
     if (strcmp(option,"transport_1d_1") == 0){
         pgd->pfluxnum = fluxnum_trans1;
@@ -60,6 +62,9 @@ void godunov_parameters(godunov * pgd, char * option){
 }
 
 void godunov_error_parameters(godunov_error * pgderr, char * option_error){
+    // Distrib the function pointers for godunov_error pgderr depending on
+    // option
+    // If option do not exist, a alert message is send
 
     if (option_error = "norm_L1"){
         pgderr->perror = norm_L1;
@@ -81,6 +86,7 @@ void godunov_error_parameters(godunov_error * pgderr, char * option_error){
 // Fonction pour créer les fichiers outputs godunov
 
 void gd_create_parameters(godunov * pgd, char * output_path){
+    // Create file parameters for godunov object pgd
 
     char * name_file = malloc(CHEMIN_MAX);
     strcpy(name_file, output_path);
@@ -105,6 +111,8 @@ void gd_create_parameters(godunov * pgd, char * output_path){
 }
 
 void gd_create_plot(godunov * pgd, char * output_path){
+    // Create file plot.dat for godunov object pgd
+    // Give exact solution if pgd->keept_solution=1
 
     char * name_file = malloc(CHEMIN_MAX);
     strcpy(name_file, output_path);
@@ -129,9 +137,9 @@ void gd_create_plot(godunov * pgd, char * output_path){
 }
 
 void gd_create_execute_gnu(godunov * pgd, char * output_path){
+    // Create and execute the gnuplot plotcom.gnu for godunov object pgd
 
-    // Create of border
-
+    // Create of plotcom.gnu
     char * name_file = malloc(CHEMIN_MAX);
     strcpy(name_file, output_path);
     strcat(name_file, "/");
@@ -152,8 +160,6 @@ void gd_create_execute_gnu(godunov * pgd, char * output_path){
         fprintf(fic, ", \'%s/plot.dat\' using 1:3 title \"soluton exacte\" w lp pt 0", output_path);
     }
     
-    
-
     fclose(fic);
     free(name_file);
 
@@ -174,6 +180,7 @@ void gd_create_execute_gnu(godunov * pgd, char * output_path){
 // Fonction pour créer les fichiers outputs godunov_error
 
 void gderr_create_parameters(godunov_error * pgderr, char * output_path){
+    // Create parameters for godunov_error object pgderr
 
     char * name_output = malloc(CHEMIN_MAX);
     strcpy(name_output, output_path);
@@ -199,6 +206,7 @@ void gderr_create_parameters(godunov_error * pgderr, char * output_path){
 }
 
 void gderr_create_plot(godunov_error * pgderr, char * output_path){
+    // Create plot.dat for godunov_error object pgderr
 
     char * name_output = malloc(CHEMIN_MAX);
     strcpy(name_output, output_path);
@@ -218,6 +226,7 @@ void gderr_create_plot(godunov_error * pgderr, char * output_path){
 }
 
 void gderr_create_execute_gnu(godunov_error * pgderr, char * output_path){
+    // Create and execute the gnuplot script plotcom.gnu for godunov_error object pgderr
 
     char * name_file = malloc(CHEMIN_MAX);
     strcpy(name_file, output_path);

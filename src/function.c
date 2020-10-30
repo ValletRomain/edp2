@@ -25,7 +25,10 @@ void godunov_init(godunov *pgd,
                     char * name_file, int keept_solexacte,
                     double xmin, double xmax, double cfl, double tmax,
                     int m, int N,
-                    char * option){
+                    char * option, 
+                    int option_visual){
+    // Initialize the object pointed by pgd with the arguments
+    // option_visual give visuality on terminal
 
     pgd->name_file = name_file;
     
@@ -58,14 +61,13 @@ void godunov_init(godunov *pgd,
         }
     }
 
-    if (0){
+    if (option_visual){
         printf("Fin Initialisation godunov\n");
     }
 }
 
 void godunov_init_file(godunov *pgd, char * name_input){
-    // pgd pointeur de la structure godunov regroupant les différentes variables du problème
-    // name_input le nom du fichier regroupant les variables du problème
+    // Initialize the object pointed by pgd with the file of path name_input
 
     FILE * file = NULL;
     char * line = malloc(CHEMIN_MAX);
@@ -155,9 +157,9 @@ void godunov_init_file(godunov *pgd, char * name_input){
     fclose(file);
 
     //--------------------------------------------------------
-    // Calcul des autres valeurs
+    // Initialization of pgd
     
-    godunov_init(pgd, name_file, keept_solexacte, xmin, xmax, cfl, tmax, m, N, option);
+    godunov_init(pgd, name_file, keept_solexacte, xmin, xmax, cfl, tmax, m, N, option, 1);
 }
 
 
@@ -165,32 +167,35 @@ void godunov_init_file(godunov *pgd, char * name_input){
 // Output
 
 void godunov_plot(godunov *pgd, char * output_path){
-    // ATTENTION, ne prend pas en compte les dimension m>1
+    // Create and fill the folder of output (of path out_path)
+    // with the result of pgd
 
-    // Creation du dossier
+    // Creation of folder
     char * output_path_final = malloc(CHEMIN_MAX);
     strcpy(output_path_final, output_path);
     strcat(output_path_final, pgd->name_file);
     
     mkdir(output_path_final, ACCESSPERMS);
     
-    // Creation du fichier parameters
+    // Creation of file parameters
     gd_create_parameters(pgd, output_path_final);
     
-    // Creation du fichier .dat
+    // Creation of file plot.dat
     gd_create_plot(pgd, output_path_final);
     
-    // Creation et execution du fichier plotcom.gnu
+    // Creation and execution of file plotcom.gnu
     gd_create_execute_gnu(pgd, output_path_final);
 
     printf("Fin Plot godunov -> %s\n", output_path_final);
     free(output_path_final);
 }
 
+
 //-----------------------------------------------------------------------------
 // Free
 
 void godunov_free(godunov *pgd){
+    // Liberate tables the of pgd
 
     free(pgd->xi);
     free(pgd->un);
@@ -200,10 +205,13 @@ void godunov_free(godunov *pgd){
     printf("Fin Liberation godunov\n");
 }
 
+
 //-----------------------------------------------------------------------------
 // Solveur
 
 void godunov_solve(godunov *pgd, int option_visual){
+    // Solve the godunov problem of pgd
+    // option_visual give visuality on terminal
     
     int m = pgd->m;
 
@@ -271,6 +279,7 @@ void godunov_error_init(godunov_error *pgderr,
                         double xmin, double xmax, double cfl, double tmax,
                         int m, int len_liste_N, int * liste_N,
                         char * option_error, char * option_godunov){
+    // Initialize the godunov_error with the arguments
     
     pgderr->name_file = name_file;
 
@@ -296,10 +305,7 @@ void godunov_error_init(godunov_error *pgderr,
 }
 
 void godunov_error_init_file(godunov_error *pgderr, char * name_input){
-    // pgd pointeur de la structure godunov regroupant les différentes variables du problème
-    // name_input le nom du fichier regroupant les variables du problème
-
-    // Initialisation des variables
+    // Initialize of godunov_error pgderr with file of path name_input
 
     FILE * file = NULL;
     char * line = malloc(CHEMIN_MAX);
@@ -307,7 +313,7 @@ void godunov_error_init_file(godunov_error *pgderr, char * name_input){
     const char * separators = " \n";
     const char * separators1 = "/";
     
-    ///--------------------------------------------------------
+    //--------------------------------------------------------
     // Sauvegarde du nom du fichier
     
     char * name_file = malloc(CHEMIN_MAX);
@@ -400,7 +406,7 @@ void godunov_error_init_file(godunov_error *pgderr, char * name_input){
     fclose(file);
 
     //--------------------------------------------------------
-    // Initialisation    
+    // Initialisation of pgderr 
     
     godunov_error_init(pgderr, name_file,
                     xmin, xmax, cfl, tmax,
@@ -416,7 +422,8 @@ void godunov_error_init_file(godunov_error *pgderr, char * name_input){
 // Ouput
 
 void godunov_error_plot(godunov_error *pgderr, char * output_path){
-    
+    // Creation of folder (of path output_path) of result of pgderr
+
     // Creation du dossier
     char * output_path_final = malloc(CHEMIN_MAX);
     strcpy(output_path_final, output_path);
@@ -444,6 +451,7 @@ void godunov_error_plot(godunov_error *pgderr, char * output_path){
 // Free
 
 void godunov_error_free(godunov_error * pgd){
+    // Liberate the tables of pgd
 
     free(pgd->liste_N);
     free(pgd->liste_error);
@@ -458,7 +466,8 @@ void godunov_error_free(godunov_error * pgd){
 // Calcul
 
 void godunov_error_compute(godunov_error *pgderr){
-    // Calcul l'erreur
+    // Compute the error between the numeric solution and exact solution of
+    // same problem with different N (give by pgderr->liste_N)
 
     godunov gd;
     
@@ -467,7 +476,8 @@ void godunov_error_compute(godunov_error *pgderr){
         godunov_init(&gd, pgderr->name_file, 1,
                         pgderr->xmin, pgderr->xmax, pgderr->cfl, pgderr->tmax,
                         pgderr->m, pgderr->liste_N[i],
-                        pgderr->option_godunov);
+                        pgderr->option_godunov,
+                        0);
 
         godunov_solve(&gd, 0);
 
