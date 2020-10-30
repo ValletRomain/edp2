@@ -1,11 +1,11 @@
-Parametres solve_transport_1d_2 :
+Parametres solve_transport_1d_3 :
 
 keept_solexacte 1
-N 1000
+N 10000
 m 1
-dx 0.002000
+dx 0.000200
 tmax 0.500000
 xmin -1.000000
 xmax 1.000000
 cfl 0.500000
-time 0
+time 2
