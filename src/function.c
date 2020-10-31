@@ -22,17 +22,14 @@
 // Input
 
 void godunov_init(godunov *pgd,
-                    char * name_file, int keept_solexacte,
+                    int keept_solexacte, int option_animation,
                     double xmin, double xmax, double cfl, double tmax,
                     int m, int N,
-                    char * option, 
-                    int option_visual){
+                    char * option_godunov){
     // Initialize the object pointed by pgd with the arguments
-    // option_visual give visuality on terminal
-
-    pgd->name_file = name_file;
     
     pgd->keept_solexacte = keept_solexacte;
+    pgd->option_animation = option_animation;
 
     pgd->xmin = xmin;
     pgd->xmax = xmax;
@@ -40,9 +37,9 @@ void godunov_init(godunov *pgd,
     pgd->N = N;
     pgd->cfl = cfl;
     pgd->tmax = tmax;
-    godunov_parameters(pgd, option);
-    pgd->option = malloc(CHEMIN_MAX);
-    strcpy(pgd->option, option);
+    godunov_parameters(pgd, option_godunov);
+    pgd->option_godunov = malloc(CHEMIN_MAX);
+    strcpy(pgd->option_godunov, option_godunov);
 
     pgd->dx = (xmax - xmin) / N;
 
@@ -60,13 +57,9 @@ void godunov_init(godunov *pgd,
             pgd->psolexacte(pgd->xi[i], tmax, pgd->sol + i*m);
         }
     }
-
-    if (option_visual){
-        printf("Fin Initialisation godunov\n");
-    }
 }
 
-void godunov_init_file(godunov *pgd, char * name_input){
+void godunov_init_file(godunov *pgd, char * path_input, char * path_output, int option_animation){
     // Initialize the object pointed by pgd with the file of path name_input
 
     FILE * file = NULL;
@@ -79,8 +72,8 @@ void godunov_init_file(godunov *pgd, char * name_input){
     // Sauvegarde du nom du fichier
     
     char * name_file = malloc(CHEMIN_MAX);
-    strcpy(name_file, name_input);
-    strcpy(str, name_input);
+    strcpy(name_file, path_input);
+    strcpy(str, path_input);
 
     strtok(str, separators1); 
     while ( (str=strtok(NULL, separators1)) != NULL){
@@ -90,11 +83,11 @@ void godunov_init_file(godunov *pgd, char * name_input){
     //--------------------------------------------------------
     // Lecture du fichier
 
-    file = fopen(name_input, "r");
+    file = fopen(path_input, "r");
 
     // La consigne + le saut de ligne
     fgets(line, CHEMIN_MAX, file);
-    printf("Initialisation <- %s\n", name_input);
+    printf("Initialisation <- %s\n", path_input);
     fgets(line, CHEMIN_MAX, file);
 
     // keept_solexacte :
@@ -159,35 +152,75 @@ void godunov_init_file(godunov *pgd, char * name_input){
     //--------------------------------------------------------
     // Initialization of pgd
     
-    godunov_init(pgd, name_file, keept_solexacte, xmin, xmax, cfl, tmax, m, N, option, 1);
+    // Save of path_input
+    pgd->path_input = malloc(CHEMIN_MAX);
+    strcpy(pgd->path_input, path_input);
+    
+    // Save of name_input
+    pgd->name_file = malloc(CHEMIN_MAX);
+    strcpy(pgd->name_file, name_file);
+    
+    // Creation of path of output (pgd->complete_output_path)
+    pgd->complete_path_output = malloc(CHEMIN_MAX);
+    strcpy(pgd->complete_path_output, path_output);
+    strcat(pgd->complete_path_output, pgd->name_file);
+
+    // Initialization of other parameters
+    godunov_init(pgd, keept_solexacte, option_animation, xmin, xmax, cfl, tmax, m, N, option);
+
+    //--------------------------------------------------------
+    // Creation of folder
+
+    // Creation of folder output
+    mkdir(pgd->complete_path_output, ACCESSPERMS);
+    
+    // Creation of parameters
+    gd_create_parameters(pgd);
+
+    if (option_animation){
+        pgd->len_U = 0;
+        
+        // Creation of folder plots in output
+        char * path_plots = malloc(CHEMIN_MAX);
+        strcpy(path_plots, pgd->complete_path_output);
+        strcat(path_plots, "/plots");
+
+        mkdir(path_plots, ACCESSPERMS);
+
+        free(path_plots);
+
+        // Creation of plots0.dat
+        gd_create_plots(pgd);
+    }
+
+    printf("Creation of folfer -> %s\n", pgd->complete_path_output);
+
+    free(name_file);
+    free(line);
+
+    printf("Fin Initilization\n");
 }
 
 
 //-----------------------------------------------------------------------------
 // Output
 
-void godunov_plot(godunov *pgd, char * output_path){
+void godunov_plot(godunov *pgd){
     // Create and fill the folder of output (of path out_path)
     // with the result of pgd
-
-    // Creation of folder
-    char * output_path_final = malloc(CHEMIN_MAX);
-    strcpy(output_path_final, output_path);
-    strcat(output_path_final, pgd->name_file);
-    
-    mkdir(output_path_final, ACCESSPERMS);
-    
-    // Creation of file parameters
-    gd_create_parameters(pgd, output_path_final);
     
     // Creation of file plot.dat
-    gd_create_plot(pgd, output_path_final);
+    gd_create_plot(pgd);
     
     // Creation and execution of file plotcom.gnu
-    gd_create_execute_gnu(pgd, output_path_final);
+    gd_create_execute_gnu(pgd);
 
-    printf("Fin Plot godunov -> %s\n", output_path_final);
-    free(output_path_final);
+    // Creation of animation
+    if (pgd->option_animation){
+        gd_create_animation(pgd);
+    }
+
+    printf("Fin Plot godunov\n");
 }
 
 
@@ -255,6 +288,11 @@ void godunov_solve(godunov *pgd, int option_visual){
         pgd->pboundary_temporal_right(pgd->xmax, tnow, pgd->unp1 + (pgd->N+1)*m);
 
         memcpy(pgd->un, pgd->unp1, (pgd->N + 2) * m *sizeof(double));
+
+        if (pgd->option_animation){
+            pgd->len_U++;
+            gd_create_plots(pgd);
+        }
     }
     time_t end = time(NULL);
 
@@ -264,7 +302,6 @@ void godunov_solve(godunov *pgd, int option_visual){
         printf("Fin Resolution godunov\n");
     }
 }
-
 
 
 //-----------------------------------------------------------------------------
@@ -473,11 +510,10 @@ void godunov_error_compute(godunov_error *pgderr){
     
     for (int i=0; i<pgderr->len_liste_N; i++){
 
-        godunov_init(&gd, pgderr->name_file, 1,
+        godunov_init(&gd, 1, 0,
                         pgderr->xmin, pgderr->xmax, pgderr->cfl, pgderr->tmax,
                         pgderr->m, pgderr->liste_N[i],
-                        pgderr->option_godunov,
-                        0);
+                        pgderr->option_godunov);
 
         godunov_solve(&gd, 0);
 

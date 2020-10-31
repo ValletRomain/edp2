@@ -85,11 +85,11 @@ void godunov_error_parameters(godunov_error * pgderr, char * option_error){
 //-----------------------------------------------------------------------------
 // Fonction pour créer les fichiers outputs godunov
 
-void gd_create_parameters(godunov * pgd, char * output_path){
+void gd_create_parameters(godunov * pgd){
     // Create file parameters for godunov object pgd
 
     char * name_file = malloc(CHEMIN_MAX);
-    strcpy(name_file, output_path);
+    strcpy(name_file, pgd->complete_path_output);
     strcat(name_file, "/");
     strcat(name_file, "parameters");
     
@@ -110,12 +110,12 @@ void gd_create_parameters(godunov * pgd, char * output_path){
     free(name_file);
 }
 
-void gd_create_plot(godunov * pgd, char * output_path){
+void gd_create_plot(godunov * pgd){
     // Create file plot.dat for godunov object pgd
     // Give exact solution if pgd->keept_solution=1
 
     char * name_file = malloc(CHEMIN_MAX);
-    strcpy(name_file, output_path);
+    strcpy(name_file, pgd->complete_path_output);
     strcat(name_file, "/");
     strcat(name_file, "plot.dat");
 
@@ -136,28 +136,49 @@ void gd_create_plot(godunov * pgd, char * output_path){
     free(name_file);
 }
 
-void gd_create_execute_gnu(godunov * pgd, char * output_path){
+void gd_create_plots(godunov * pgd){
+    // Create the ploti.dat with i=pgd->len_U-1
+
+    char * name_plot = malloc(CHEMIN_MAX);
+    strcpy(name_plot, pgd->complete_path_output);
+    char * inter = malloc(CHEMIN_MAX);
+    sprintf(inter, "/plots/plot%d.dat", pgd->len_U);
+    strcat(name_plot, inter);
+
+    free(inter);
+
+    FILE * fic = fopen(name_plot, "w");
+
+    for (int i=0; i<pgd->N+2; i++){
+        fprintf(fic, "%f %f \n", pgd->xi[i], pgd->un[i]);
+    }
+
+    fclose(fic);
+    free(name_plot);
+}
+
+void gd_create_execute_gnu(godunov * pgd){
     // Create and execute the gnuplot plotcom.gnu for godunov object pgd
 
     // Create of plotcom.gnu
     char * name_file = malloc(CHEMIN_MAX);
-    strcpy(name_file, output_path);
+    strcpy(name_file, pgd->complete_path_output);
     strcat(name_file, "/");
     strcat(name_file, "plotcom.gnu");
 
     FILE *fic = fopen(name_file, "w");
     
     fprintf(fic, "set terminal pngcairo\n");
-    fprintf(fic, "set output \'%s/graphe.png\'\n\n", output_path);
-    fprintf(fic, "set title \"Resolution de %s tmax=%f\"\n", pgd->option, pgd->tmax);
+    fprintf(fic, "set output \'%s/graphe.png\'\n\n", pgd->complete_path_output);
+    fprintf(fic, "set title \"Resolution de %s tmax=%f\"\n", pgd->option_godunov, pgd->tmax);
     fprintf(fic, "set xlabel \"x\"\n");
     fprintf(fic, "set ylabel \"u\"\n\n");
-    fprintf(fic, "stats \'%s/plot.dat\' using 1:2 nooutput\n", output_path);
+    fprintf(fic, "stats \'%s/plot.dat\' using 1:2 nooutput\n", pgd->complete_path_output);
     fprintf(fic, "set xrange [STATS_min_x:STATS_max_x]\n");
     fprintf(fic, "set yrange [STATS_min_y - %f * (STATS_max_y-STATS_min_y): STATS_max_y + %f * (STATS_max_y-STATS_min_y)]\n\n", BORDER, BORDER);
-    fprintf(fic, "plot \'%s/plot.dat\' using 1:2 title \"solution numerique\" w lp pt 0", output_path);
+    fprintf(fic, "plot \'%s/plot.dat\' using 1:2 title \"solution numerique\" w lp pt 0", pgd->complete_path_output);
     if (pgd->keept_solexacte){
-        fprintf(fic, ", \'%s/plot.dat\' using 1:3 title \"soluton exacte\" w lp pt 0", output_path);
+        fprintf(fic, ", \'%s/plot.dat\' using 1:3 title \"soluton exacte\" w lp pt 0", pgd->complete_path_output);
     }
     
     fclose(fic);
@@ -166,7 +187,7 @@ void gd_create_execute_gnu(godunov * pgd, char * output_path){
     // Execution de la commande gnuplot
     char * name_command = malloc(CHEMIN_MAX);
     strcpy(name_command, "gnuplot ");
-    strcat(name_command, output_path);
+    strcat(name_command, pgd->complete_path_output);
     strcat(name_command, "/");
     strcat(name_command, "plotcom.gnu");
     
@@ -175,6 +196,72 @@ void gd_create_execute_gnu(godunov * pgd, char * output_path){
 
     free(name_command);
 }
+
+void gd_create_animation(godunov * pgd){
+    // Create and execute the gnuplot plotcom.gnu for godunov object pgd
+
+    // Create of folder animation
+    char * path_animation = malloc(CHEMIN_MAX);
+    strcpy(path_animation, pgd->complete_path_output);
+    strcat(path_animation, "/animation");
+
+    mkdir(path_animation, ACCESSPERMS);
+
+    free(path_animation);
+
+    // Create of plotcom.gnu
+    char * name_file = malloc(CHEMIN_MAX);
+    strcpy(name_file, pgd->complete_path_output);
+    strcat(name_file, "/plotcom.gnu");
+
+    FILE *fic = fopen(name_file, "w");
+    
+    fprintf(fic, "set terminal pngcairo\n\n");
+    fprintf(fic, "stats \'%s/plots/plot1.dat\' using 1:2 nooutput\n\n", pgd->complete_path_output);
+    fprintf(fic, "Xmin = STATS_min_x\n");
+    fprintf(fic, "Xmax = STATS_max_x\n");
+    fprintf(fic, "Ymin = STATS_min_y - %f * (STATS_max_y - STATS_min_y)\n", BORDER);
+    fprintf(fic, "Ymax = STATS_max_y + %f * (STATS_max_y - STATS_min_y)\n\n", BORDER);
+
+    fprintf(fic, "do for [i=0:%d] {\n", pgd->len_U-1);
+    fprintf(fic, "\tset output sprintf(\'%s/animation/graphe%%d.png\',i) \n\n", pgd->complete_path_output);
+    fprintf(fic, "\tset title sprintf(\"Animation de %s len_U=%%d\",i) \n", pgd->option_godunov);
+    fprintf(fic, "\tset key off\n\n");
+    fprintf(fic, "\tset xlabel \"x\" \n");
+    fprintf(fic, "\tset ylabel \"u\" \n\n");
+    fprintf(fic, "\tset xrange [Xmin:Xmax] \n");
+    fprintf(fic, "\tset yrange [Ymin:Ymax] \n\n");
+    fprintf(fic, "\tplot sprintf(\'%s/plots/plot%%d.dat\', i) using 1:2 w lp pt 0 \n", pgd->complete_path_output);
+    fprintf(fic, "}");
+    
+    fclose(fic);
+    free(name_file);
+    
+    // Execution de la commande gnuplot
+    char * name_command = malloc(CHEMIN_MAX);
+    strcpy(name_command, "gnuplot ");
+    strcat(name_command, pgd->complete_path_output);
+    strcat(name_command, "/plotcom.gnu");
+    
+    int status = system(name_command);
+    assert(status == EXIT_SUCCESS);
+    
+    free(name_command);
+
+    // Creation of video
+    name_command = malloc(CHEMIN_MAX);
+    sprintf(name_command,
+                "mencoder mf://%s/animation/*.png -mf w=800:h=600:fps=25:type=png -ovc lavc -lavcopts vcodec=mpeg4 -oac copy -o %s/animation.avi",
+                pgd->complete_path_output, pgd->complete_path_output);
+    
+    status = system(name_command);
+    assert(status == EXIT_SUCCESS);
+    
+    free(name_command);
+
+    printf("Fin create of animation\n");
+}
+
 
 //-----------------------------------------------------------------------------
 // Fonction pour créer les fichiers outputs godunov_error

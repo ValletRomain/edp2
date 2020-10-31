@@ -53,10 +53,9 @@ int main(int argc, char * argv[]){
 
     godunov gd = {0};
     
-    //godunov_init_file(&gd, path_input, path_output, aflag);
-    godunov_init_file(&gd, path_input);
+    godunov_init_file(&gd, path_input, path_output, aflag);
     godunov_solve(&gd, 1);
-    godunov_plot(&gd, path_output);
+    godunov_plot(&gd);
     godunov_free(&gd);
 
     exit(0);

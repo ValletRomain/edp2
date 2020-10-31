@@ -6,8 +6,12 @@ typedef struct godunov{
     // Name of different file or folder
     char * name_file; //name of file of input
 
+    char * path_input; // path of input file
+    char * complete_path_output; // path of output folder (output_path/name_file)
+
     // Option
     int keept_solexacte; //keept the solution (=1) or not (=0)
+    int option_animation;
 
     // Parametre du probleme
     int m, N; // m dimension of problem, N number of space point
@@ -15,7 +19,7 @@ typedef struct godunov{
     double cfl;
     double dt, dx;
     double tmax;
-    char * option; // equation is resolve (burgers, transport...)
+    char * option_godunov; // equation is resolve (burgers, transport...)
 
     void (*pfluxnum)(double*, double*, double, double*);
     double (*plambda_ma)(double*);
@@ -34,6 +38,8 @@ typedef struct godunov{
     double *un; // solution a l'instant n
     double *unp1; // solution a l'instant n+1
     double *sol; // solution exact
+
+    int len_U;
 
 } godunov;
 
@@ -62,15 +68,14 @@ typedef struct godunov_error{
 } godunov_error;
 
 void godunov_init(godunov *pgd,
-                    char * name_file, int keept_solution,
+                    int keept_solexacte, int option_animation,
                     double xmin, double xmax, double cfl, double tmax,
                     int m, int N,
-                    char * option,
-                    int option_visual);
+                    char * option_godunov);
 
-void godunov_init_file(godunov *pgd, char * name_input);
+void godunov_init_file(godunov *pgd, char * path_input, char * path_output, int option_animation);
 
-void godunov_plot(godunov *pgd, char * output_path);
+void godunov_plot(godunov *pgd);
 
 void godunov_free(godunov *pgd);
 
