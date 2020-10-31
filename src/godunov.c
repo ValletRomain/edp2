@@ -21,15 +21,42 @@ The new output folder contains :
 
 int main(int argc, char * argv[]){
 
-    if (argc != 3){
-        raler(0, "usage : godunov init_file output_path");
+    int c, errflag=0, aflag=0;
+    extern char *optarg;
+    extern int optind;
+
+    while ( (c=getopt(argc, argv, "a"))!=-1 ){
+        switch (c)
+        {
+        case 'a':
+            aflag++;
+            break;
+        
+        default:
+            errflag++;
+            break;
+        }
     }
+
+    if ((argc-optind) != 2)
+        errflag++;
     
+    if (errflag)
+        raler(0, "usage : godunov [a] path_input path_output");
+
+    char * path_input = malloc(CHEMIN_MAX);
+    char * path_output = malloc(CHEMIN_MAX);
+    strcpy(path_input, argv[optind]);
+    optind++;
+    strcpy(path_output, argv[optind]);
+
+
     godunov gd = {0};
     
-    godunov_init_file(&gd, argv[1]);
+    //godunov_init_file(&gd, path_input, path_output, aflag);
+    godunov_init_file(&gd, path_input);
     godunov_solve(&gd, 1);
-    godunov_plot(&gd, argv[2]);
+    godunov_plot(&gd, path_output);
     godunov_free(&gd);
 
     exit(0);
