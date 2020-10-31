@@ -11,3 +11,6 @@ Makefile
 *.blg
 Latex/report.pdf
 out_to_latex.bash
+animation
+plots 
+*.avi
