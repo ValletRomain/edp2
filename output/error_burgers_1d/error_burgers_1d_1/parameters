@@ -1,8 +1,0 @@
-Parametres output/error_burgers_1d/error_burgers_1d_1:
-
-len_liste_N 8
-liste_N 1 10 100 1000 10000 20000 30000 50000 
-m 1
-xmin -1.000000
-xmax 1.000000
-cfl 0.500000
