@@ -10,6 +10,8 @@ ADD . /app/
 WORKDIR /app
 RUN npm install
 
+# Add install mencoder
+
 EXPOSE 2368
 VOLUME /app/logs
 
