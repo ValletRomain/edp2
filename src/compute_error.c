@@ -1,4 +1,3 @@
-#include "godunov.h"
 #include <stdlib.h>
 #include <assert.h>
 #include <stdio.h>
@@ -14,12 +13,12 @@ int main(int argc, char * argv[]){
         raler(0, "usage : godunov_error init_file output_path");
     }
 
-    godunov_error gderr = {0};
+    parameters_error parerr = {0};
     
-    godunov_error_init_file(&gderr, argv[1]);
-    godunov_error_compute(&gderr);
-    godunov_error_plot(&gderr, argv[2]);
-    godunov_error_free(&gderr);
+    parameters_error_init_file(&parerr, argv[1]);
+    parameters_error_compute(&parerr);
+    parameters_error_plot(&parerr, argv[2]);
+    parameters_error_free(&parerr);
 
     exit(0);
 }

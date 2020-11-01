@@ -1,7 +1,7 @@
-#ifndef _GODUNOV_H
-#define _GODUNOV_H
+#ifndef _PARAMETERS_H
+#define _PARAMETERS_H
 
-typedef struct godunov{
+typedef struct parameters{
 
     // Name of different file or folder
     char * name_file; //name of file of input
@@ -39,11 +39,11 @@ typedef struct godunov{
     double *unp1; // solution a l'instant n+1
     double *sol; // solution exact
 
-    int len_U;
+    int int_tnow;
 
-} godunov;
+} parameters;
 
-typedef struct godunov_error{
+typedef struct parameters_error{
 
     // Name of different file or folder
     char * name_file;
@@ -65,34 +65,34 @@ typedef struct godunov_error{
     double * liste_error;
     unsigned long * liste_time;
 
-} godunov_error;
+} parameters_error;
 
-void godunov_init(godunov *pgd,
+void parameters_init(parameters *par,
                     int keept_solexacte, int option_animation,
                     double xmin, double xmax, double cfl, double tmax,
                     int m, int N,
                     char * option_godunov);
 
-void godunov_init_file(godunov *pgd, char * path_input, char * path_output, int option_animation);
+void parameters_init_file(parameters *par, char * path_input, char * path_output, int option_animation);
 
-void godunov_plot(godunov *pgd);
+void parameters_plot(parameters *par);
 
-void godunov_free(godunov *pgd);
+void parameters_free(parameters *par);
 
-void godunov_solve(godunov *pgd, int option_visual);
+void parameters_solve(parameters *par, int option_visual);
 
-void godunov_error_init(godunov_error *pgderr,
+void parameters_error_init(parameters_error *pperr,
                         char * name_file,
                         double xmin, double xmax, double cfl, double tmax,
                         int m, int len_liste_N, int * liste_N,
                         char * option_error, char * option_godunov);
 
-void godunov_error_init_file(godunov_error *pgderr, char * name_input);
+void parameters_error_init_file(parameters_error *pperr, char * name_input);
 
-void godunov_error_plot(godunov_error *pgderr, char * output_path);
+void parameters_error_plot(parameters_error *pperr, char * output_path);
 
-void godunov_error_free(godunov_error * pgd);
+void parameters_error_free(parameters_error * pperr);
 
-void godunov_error_compute(godunov_error *pgderr);
+void parameters_error_compute(parameters_error *pperr);
 
 #endif

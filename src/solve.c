@@ -43,12 +43,12 @@ int main(int argc, char * argv[]){
     strcpy(path_output, argv[optind]);
 
 
-    godunov gd = {0};
+    parameters par = {0};
     
-    godunov_init_file(&gd, path_input, path_output, aflag);
-    godunov_solve(&gd, 1);
-    godunov_plot(&gd);
-    godunov_free(&gd);
+    parameters_init_file(&par, path_input, path_output, aflag);
+    parameters_solve(&par, 1);
+    parameters_plot(&par);
+    parameters_free(&par);
 
     exit(0);
 }

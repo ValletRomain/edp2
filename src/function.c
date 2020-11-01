@@ -21,46 +21,46 @@
 //-----------------------------------------------------------------------------
 // Input
 
-void godunov_init(godunov *pgd,
+void parameters_init(parameters *ppar,
                     int keept_solexacte, int option_animation,
                     double xmin, double xmax, double cfl, double tmax,
                     int m, int N,
                     char * option_godunov){
-    // Initialize the object pointed by pgd with the arguments
+    // Initialize the object pointed by ppar with the arguments
     
-    pgd->keept_solexacte = keept_solexacte;
-    pgd->option_animation = option_animation;
+    ppar->keept_solexacte = keept_solexacte;
+    ppar->option_animation = option_animation;
 
-    pgd->xmin = xmin;
-    pgd->xmax = xmax;
-    pgd->m = m;
-    pgd->N = N;
-    pgd->cfl = cfl;
-    pgd->tmax = tmax;
-    godunov_parameters(pgd, option_godunov);
-    pgd->option_godunov = malloc(CHEMIN_MAX);
-    strcpy(pgd->option_godunov, option_godunov);
+    ppar->xmin = xmin;
+    ppar->xmax = xmax;
+    ppar->m = m;
+    ppar->N = N;
+    ppar->cfl = cfl;
+    ppar->tmax = tmax;
+    give_parameters(ppar, option_godunov);
+    ppar->option_godunov = malloc(CHEMIN_MAX);
+    strcpy(ppar->option_godunov, option_godunov);
 
-    pgd->dx = (xmax - xmin) / N;
+    ppar->dx = (xmax - xmin) / N;
 
-    pgd->xi = malloc((N+2) * sizeof(double) * m);
-    pgd->un = malloc((N+2) * sizeof(double) * m);
-    pgd->unp1 = malloc((N+2) * sizeof(double) * m);
-    pgd->sol = malloc((N+2) * sizeof(double)*m);
+    ppar->xi = malloc((N+2) * sizeof(double) * m);
+    ppar->un = malloc((N+2) * sizeof(double) * m);
+    ppar->unp1 = malloc((N+2) * sizeof(double) * m);
+    ppar->sol = malloc((N+2) * sizeof(double)*m);
 
     for (int i = 0; i < N + 2; i++){
 
-        pgd->xi[i] = xmin + pgd->dx/2 + (i-1)*pgd->dx;
-        pgd->pboundary_spatial(pgd->xi[i], pgd->un + i*m);
+        ppar->xi[i] = xmin + ppar->dx/2 + (i-1)*ppar->dx;
+        ppar->pboundary_spatial(ppar->xi[i], ppar->un + i*m);
 
         if (keept_solexacte){
-            pgd->psolexacte(pgd->xi[i], tmax, pgd->sol + i*m);
+            ppar->psolexacte(ppar->xi[i], tmax, ppar->sol + i*m);
         }
     }
 }
 
-void godunov_init_file(godunov *pgd, char * path_input, char * path_output, int option_animation){
-    // Initialize the object pointed by pgd with the file of path name_input
+void parameters_init_file(parameters *ppar, char * path_input, char * path_output, int option_animation){
+    // Initialize the object pointed by ppar with the file of path name_input
 
     FILE * file = NULL;
     char * line = malloc(CHEMIN_MAX);
@@ -150,39 +150,39 @@ void godunov_init_file(godunov *pgd, char * path_input, char * path_output, int 
     fclose(file);
 
     //--------------------------------------------------------
-    // Initialization of pgd
+    // Initialization of ppar
     
     // Save of path_input
-    pgd->path_input = malloc(CHEMIN_MAX);
-    strcpy(pgd->path_input, path_input);
+    ppar->path_input = malloc(CHEMIN_MAX);
+    strcpy(ppar->path_input, path_input);
     
     // Save of name_input
-    pgd->name_file = malloc(CHEMIN_MAX);
-    strcpy(pgd->name_file, name_file);
+    ppar->name_file = malloc(CHEMIN_MAX);
+    strcpy(ppar->name_file, name_file);
     
-    // Creation of path of output (pgd->complete_output_path)
-    pgd->complete_path_output = malloc(CHEMIN_MAX);
-    strcpy(pgd->complete_path_output, path_output);
-    strcat(pgd->complete_path_output, pgd->name_file);
+    // Creation of path of output (ppar->complete_output_path)
+    ppar->complete_path_output = malloc(CHEMIN_MAX);
+    strcpy(ppar->complete_path_output, path_output);
+    strcat(ppar->complete_path_output, ppar->name_file);
 
     // Initialization of other parameters
-    godunov_init(pgd, keept_solexacte, option_animation, xmin, xmax, cfl, tmax, m, N, option);
+    parameters_init(ppar, keept_solexacte, option_animation, xmin, xmax, cfl, tmax, m, N, option);
 
     //--------------------------------------------------------
     // Creation of folder
 
     // Creation of folder output
-    mkdir(pgd->complete_path_output, ACCESSPERMS);
+    mkdir(ppar->complete_path_output, ACCESSPERMS);
     
     // Creation of parameters
-    gd_create_parameters(pgd);
+    par_create_parameters(ppar);
 
     if (option_animation){
-        pgd->len_U = 0;
+        ppar->int_tnow = 0;
         
         // Creation of folder plots in output
         char * path_plots = malloc(CHEMIN_MAX);
-        strcpy(path_plots, pgd->complete_path_output);
+        strcpy(path_plots, ppar->complete_path_output);
         strcat(path_plots, "/plots");
 
         mkdir(path_plots, ACCESSPERMS);
@@ -190,10 +190,10 @@ void godunov_init_file(godunov *pgd, char * path_input, char * path_output, int 
         free(path_plots);
 
         // Creation of plots0.dat
-        gd_create_plots(pgd);
+        par_create_plots(ppar);
     }
 
-    printf("Creation of folfer -> %s\n", pgd->complete_path_output);
+    printf("Creation of folfer -> %s\n", ppar->complete_path_output);
 
     free(name_file);
     free(line);
@@ -205,48 +205,48 @@ void godunov_init_file(godunov *pgd, char * path_input, char * path_output, int 
 //-----------------------------------------------------------------------------
 // Output
 
-void godunov_plot(godunov *pgd){
+void parameters_plot(parameters *ppar){
     // Create and fill the folder of output (of path out_path)
-    // with the result of pgd
+    // with the result of ppar
     
     // Creation of file plot.dat
-    gd_create_plot(pgd);
+    par_create_plot(ppar);
     
     // Creation and execution of file plotcom.gnu
-    gd_create_execute_gnu(pgd);
+    par_create_execute_gnu(ppar);
 
     // Creation of animation
-    if (pgd->option_animation){
-        gd_create_animation(pgd);
+    if (ppar->option_animation){
+        par_create_animation(ppar);
     }
 
-    printf("Fin Plot godunov\n");
+    printf("Fin Plot\n");
 }
 
 
 //-----------------------------------------------------------------------------
 // Free
 
-void godunov_free(godunov *pgd){
-    // Liberate tables the of pgd
+void parameters_free(parameters *ppar){
+    // Liberate tables the of ppar
 
-    free(pgd->xi);
-    free(pgd->un);
-    free(pgd->unp1);
-    free(pgd->sol);
+    free(ppar->xi);
+    free(ppar->un);
+    free(ppar->unp1);
+    free(ppar->sol);
 
-    printf("Fin Liberation godunov\n");
+    printf("Fin Liberation parameters\n");
 }
 
 
 //-----------------------------------------------------------------------------
 // Solveur
 
-void godunov_solve(godunov *pgd, int option_visual){
-    // Solve the godunov problem of pgd
+void parameters_solve(parameters *ppar, int option_visual){
+    // Solve the problem of ppar
     // option_visual give visuality on terminal
     
-    int m = pgd->m;
+    int m = ppar->m;
 
     if (option_visual){
         printf("Debut Resolution\n");
@@ -255,51 +255,51 @@ void godunov_solve(godunov *pgd, int option_visual){
     time_t begin = time(NULL);
     
     double tnow = 0;
-    while(tnow < pgd->tmax){
+    while(tnow < ppar->tmax){
         
         // calcul de la vitesse max
         double vmax = 0;
-        for (int i = 0; i < pgd->N + 2; i++){
-            double vloc = fabs(pgd->plambda_ma(pgd->un + m * i));
+        for (int i = 0; i < ppar->N + 2; i++){
+            double vloc = fabs(ppar->plambda_ma(ppar->un + m * i));
             vmax = vmax > vloc ? vmax : vloc;
         }
         
-        pgd->dt = pgd->cfl * pgd->dx / vmax;
-        for(int i = 1; i < pgd->N+1; i++){
+        ppar->dt = ppar->cfl * ppar->dx / vmax;
+        for(int i = 1; i < ppar->N+1; i++){
             double flux[m];
-            pgd->pfluxnum(pgd->un + i*m, pgd->un + (i+1)*m, flux);
+            ppar->pfluxnum(ppar->un + i*m, ppar->un + (i+1)*m, flux);
             for(int iv = 0; iv < m; iv++){
-                pgd->unp1[i*m + iv] = pgd->un[i*m + iv] - pgd->dt/pgd->dx * flux[iv];
+                ppar->unp1[i*m + iv] = ppar->un[i*m + iv] - ppar->dt/ppar->dx * flux[iv];
             }
-            pgd->pfluxnum(pgd->un + (i - 1) * m, pgd->un + i * m, flux);
+            ppar->pfluxnum(ppar->un + (i - 1) * m, ppar->un + i * m, flux);
             for(int iv = 0; iv < m;iv++){
-                pgd->unp1[i * m + iv] += pgd->dt / pgd->dx * flux[iv];
+                ppar->unp1[i * m + iv] += ppar->dt / ppar->dx * flux[iv];
             }
         }
         // mise à jour
-        tnow += pgd->dt;
+        tnow += ppar->dt;
 
         if (option_visual){
-            printf("tnow = %f vmax = %f tmax = %f\n", tnow, vmax, pgd->tmax);
+            printf("tnow = %f vmax = %f tmax = %f\n", tnow, vmax, ppar->tmax);
         }
         
         // conditions aux limites
-        pgd->pboundary_temporal_left(pgd->xmin, tnow, pgd->unp1);
-        pgd->pboundary_temporal_right(pgd->xmax, tnow, pgd->unp1 + (pgd->N+1)*m);
+        ppar->pboundary_temporal_left(ppar->xmin, tnow, ppar->unp1);
+        ppar->pboundary_temporal_right(ppar->xmax, tnow, ppar->unp1 + (ppar->N+1)*m);
 
-        memcpy(pgd->un, pgd->unp1, (pgd->N + 2) * m *sizeof(double));
+        memcpy(ppar->un, ppar->unp1, (ppar->N + 2) * m *sizeof(double));
 
-        if (pgd->option_animation){
-            pgd->len_U++;
-            gd_create_plots(pgd);
+        if (ppar->option_animation){
+            ppar->int_tnow++;
+            par_create_plots(ppar);
         }
     }
     time_t end = time(NULL);
 
-    pgd->time = (unsigned long) difftime(end, begin);
+    ppar->time = (unsigned long) difftime(end, begin);
 
     if (option_visual){
-        printf("Fin Resolution godunov\n");
+        printf("Fin Resolution\n");
     }
 }
 
@@ -311,38 +311,38 @@ void godunov_solve(godunov *pgd, int option_visual){
 //-----------------------------------------------------------------------------
 // Input
 
-void godunov_error_init(godunov_error *pgderr,
+void parameters_error_init(parameters_error *pparerr,
                         char * name_file,
                         double xmin, double xmax, double cfl, double tmax,
                         int m, int len_liste_N, int * liste_N,
                         char * option_error, char * option_godunov){
-    // Initialize the godunov_error with the arguments
+    // Initialize the parameters_error with the arguments
     
-    pgderr->name_file = name_file;
+    pparerr->name_file = name_file;
 
-    pgderr->xmin = xmin;
-    pgderr->xmax = xmax;
-    pgderr->cfl = cfl;
-    pgderr->m = m;
-    pgderr->len_liste_N = len_liste_N;
-    pgderr->liste_N = liste_N;
-    pgderr->tmax = tmax;
+    pparerr->xmin = xmin;
+    pparerr->xmax = xmax;
+    pparerr->cfl = cfl;
+    pparerr->m = m;
+    pparerr->len_liste_N = len_liste_N;
+    pparerr->liste_N = liste_N;
+    pparerr->tmax = tmax;
 
-    pgderr->option_error = malloc(CHEMIN_MAX);
-    pgderr->option_godunov = malloc(CHEMIN_MAX);
-    strcpy(pgderr->option_error, option_error);
-    strcpy(pgderr->option_godunov, option_godunov);
+    pparerr->option_error = malloc(CHEMIN_MAX);
+    pparerr->option_godunov = malloc(CHEMIN_MAX);
+    strcpy(pparerr->option_error, option_error);
+    strcpy(pparerr->option_godunov, option_godunov);
 
-    godunov_error_parameters(pgderr, option_error);
+    give_error_parameters(pparerr, option_error);
 
-    pgderr->liste_error = malloc(len_liste_N * sizeof(double));
-    pgderr->liste_time = malloc(len_liste_N * sizeof(unsigned long));
+    pparerr->liste_error = malloc(len_liste_N * sizeof(double));
+    pparerr->liste_time = malloc(len_liste_N * sizeof(unsigned long));
 
     printf("Fin Initialisation\n");
 }
 
-void godunov_error_init_file(godunov_error *pgderr, char * name_input){
-    // Initialize of godunov_error pgderr with file of path name_input
+void parameters_error_init_file(parameters_error *pparerr, char * name_input){
+    // Initialize of parameters_error pparerr with file of path name_input
 
     FILE * file = NULL;
     char * line = malloc(CHEMIN_MAX);
@@ -443,9 +443,9 @@ void godunov_error_init_file(godunov_error *pgderr, char * name_input){
     fclose(file);
 
     //--------------------------------------------------------
-    // Initialisation of pgderr 
+    // Initialisation of pparerr 
     
-    godunov_error_init(pgderr, name_file,
+    parameters_error_init(pparerr, name_file,
                     xmin, xmax, cfl, tmax,
                     m, len_liste_N, liste_N,
                     option_error, option_godunov);
@@ -458,26 +458,26 @@ void godunov_error_init_file(godunov_error *pgderr, char * name_input){
 //-----------------------------------------------------------------------------
 // Ouput
 
-void godunov_error_plot(godunov_error *pgderr, char * output_path){
-    // Creation of folder (of path output_path) of result of pgderr
+void parameters_error_plot(parameters_error *pparerr, char * output_path){
+    // Creation of folder (of path output_path) of result of pparerr
 
     // Creation du dossier
     char * output_path_final = malloc(CHEMIN_MAX);
     strcpy(output_path_final, output_path);
-    strcat(output_path_final, pgderr->name_file);
+    strcat(output_path_final, pparerr->name_file);
     
     mkdir(output_path_final, ACCESSPERMS);
 
     // Creation du fichier parameters
-    gderr_create_parameters(pgderr, output_path_final);
+    parerr_create_parameters(pparerr, output_path_final);
 
     // Creation du fichier plot.dat
-    gderr_create_plot(pgderr, output_path_final);
+    parerr_create_plot(pparerr, output_path_final);
 
     // Creation du fichier plotcom.gnu si il n'existe pas
-    gderr_create_execute_gnu(pgderr, output_path_final);
+    parerr_create_execute_gnu(pparerr, output_path_final);
 
-    printf("Fin Plot godunov_error -> %s\n", output_path_final);
+    printf("Fin Plot -> %s\n", output_path_final);
 
     free(output_path_final);
 
@@ -487,42 +487,41 @@ void godunov_error_plot(godunov_error *pgderr, char * output_path){
 //-----------------------------------------------------------------------------
 // Free
 
-void godunov_error_free(godunov_error * pgd){
+void parameters_error_free(parameters_error * pgd){
     // Liberate the tables of pgd
 
     free(pgd->liste_N);
     free(pgd->liste_error);
     free(pgd->liste_time);
 
-    printf("Fin Liberation godunov_error\n");
-
+    printf("Fin Liberation\n");
 }
 
 
 //-----------------------------------------------------------------------------
 // Calcul
 
-void godunov_error_compute(godunov_error *pgderr){
+void parameters_error_compute(parameters_error *pparerr){
     // Compute the error between the numeric solution and exact solution of
-    // same problem with different N (give by pgderr->liste_N)
+    // same problem with different N (give by pparerr->liste_N)
 
-    godunov gd;
+    parameters par;
     
-    for (int i=0; i<pgderr->len_liste_N; i++){
+    for (int i=0; i<pparerr->len_liste_N; i++){
 
-        godunov_init(&gd, 1, 0,
-                        pgderr->xmin, pgderr->xmax, pgderr->cfl, pgderr->tmax,
-                        pgderr->m, pgderr->liste_N[i],
-                        pgderr->option_godunov);
+        parameters_init(&par, 1, 0,
+                        pparerr->xmin, pparerr->xmax, pparerr->cfl, pparerr->tmax,
+                        pparerr->m, pparerr->liste_N[i],
+                        pparerr->option_godunov);
 
-        godunov_solve(&gd, 0);
+        parameters_solve(&par, 0);
 
-        pgderr->liste_error[i] = pgderr->perror((gd.N+2)*gd.m, gd.un, gd.sol);
-        pgderr->liste_time[i] = gd.time;
+        pparerr->liste_error[i] = pparerr->perror((par.N+2)*par.m, par.un, par.sol);
+        pparerr->liste_time[i] = par.time;
 
-        printf("Compute error for N=%d error=%f time=%ld s\n", gd.N, pgderr->liste_error[i], pgderr->liste_time[i]);   
+        printf("Compute error for N=%d error=%f time=%ld s\n", par.N, pparerr->liste_error[i], pparerr->liste_time[i]);   
     }
 
-    printf("Fin calcul des erreurs godunov_error\n");
+    printf("Fin calcul des erreurs\n");
 
 }

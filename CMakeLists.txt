@@ -2,21 +2,21 @@
 cmake_minimum_required(VERSION 3.6)
 
 # Godunov
-project(godunov)
+project(solve)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c+11")
 
-set(GODUNOV_FILES src/godunov.c)
-add_executable(godunov ${GODUNOV_FILES})
+set(SOLVE_FILES src/solve.c)
+add_executable(solve ${SOLVE_FILES})
 
-target_link_libraries(godunov PRIVATE m)
+target_link_libraries(solve PRIVATE m)
 
 # Godunov error
-project(godunov_error)
+project(compute_error)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c+11")
 
-set(GODUNOV_ERROR_FILES src/godunov_error.c)
-add_executable(godunov_error ${GODUNOV_ERROR_FILES})
+set(ERROR_FILES src/compute_error.c)
+add_executable(compute_error ${ERROR_FILES})
 
-target_link_libraries(godunov_error PRIVATE m)
+target_link_libraries(compute_error PRIVATE m)
