@@ -1,7 +1,13 @@
 \documentclass{article}
 \usepackage[utf8]{inputenc}
+\usepackage{amsthm}
 \usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{mathrsfs}
 \usepackage{tikz}
+\usepackage{graphics}
+
+\newtheorem{recap}{Recapitulation}
 
 \title{Master 2 CSMI : EDP2\\Rapport de TP}
 \author{Romain Vallet}
@@ -9,6 +15,53 @@
 \begin{document}
 
 \maketitle
+
+\section{Rappel de cours}
+
+Nous résolvons les équations du type :
+\[ \partial_t u + \partial_x \left(f(u)\right) = 0 \label{eq} \tag{EQ} \]
+
+Avec $u : \mathbb{R} \times \mathbb{R}^{+} \mapsto \mathbb{R}$ inconnue et $f : \mathbb{R} \mapsto \mathbb{R}$ connue.
+
+Qui peut s'écrire :
+\[ \partial_t u + f'(u) \partial_x u = 0 \label{eq2} \tag{EQ2} \]
+
+\subsection{Solveur de Riemann}
+
+Le problème de Riemann lié à l'équation \ref{eq} est le problème d'inconnue $u$ :
+
+\[ \left\{ \begin{matrix}
+	\partial_t u + \partial_x \left(f(u)\right) = 0 \text{   }\ref{eq} \\
+	u(x,0) = \left\{ \begin{matrix}
+				u_L \text{ si } x < 0 \\
+				u_R \text{ si } x > 0
+	\end{matrix} \right.
+\end{matrix} \right.\]
+
+On écrit le solveur de Riemann $R(u_L, u_R, z)$ tel que :
+\[ R(u_L, u_R, \frac{x}{t}) = u(x,t) \]
+
+\subsection{Schéma de Rusanov}
+
+Le schéma de Rusanov est régit par la discrétisation :
+\[ \frac{u_i^{n+1}-u_i^n}{\Delta t} + \frac{f(u_i^n,u_{i+1}^n) - f(u_{i-1}^n,u_i^n)}{\Delta x} = 0 \]
+
+Avec $f$ le flux de Rusanov :
+\[f(a,b) = \frac{f(a)+f(b)}{2} - \frac{\lambda(a,b)}{2} (b-a)\]
+
+Avec $R$ le solveur de Riemann lié à l'équation à résoudre.
+
+Avec $\lambda(a,b) = max \left(|f'(a)|, |f'(b)|\right)$.
+
+\subsection{Schéma de Godunov}
+
+Le schéma de Godunov est régit par la discrétisation :
+\[ \frac{u_i^{n+1}-u_i^n}{\Delta t} + \frac{f(u_i^n,u_{i+1}^n) - f(u_{i-1}^n,u_i^n)}{\Delta x} = 0 \]
+
+Avec $f$ le flux de Godunov :
+\[f(a,b) = f(R(a,b,0))\]
+
+Nous avons une contraintes $2\lambda \Delta t < \Delta x$ avec $\lambda = max_i |f'(u_i^n)|$.
 
 \section{TP 1}
 
@@ -53,6 +106,33 @@ Nous avons une contradiction, il n'y a pas de solution.
 \newline
 
 3.
+
+\begin{recap}{Schéma de Godunov pour l'équation de transport}
+
+Pour l'équation de transport (avec $c>0$), nous avons :
+
+$\bullet$ $f(u) = c u$
+
+$\bullet$ Solveur de Riemann :
+\[ R(u_L, u_R, z) = \left\{ \begin{matrix}
+	
+	\left\{ \begin{matrix}
+		u_L \text{ pour } z < u_L \\
+		z \text{ pour } u_l < z < u_R \\
+		u_R \text{ pour } z > u_R	
+	\end{matrix} \right. \text{ si } u_L < u_R \\
+	
+	\left\{ \begin{matrix} 
+		u_L \text{ pour } z < c \\
+		u_R \text{ pour } z > c
+	\end{matrix} \right. \text{ si } u_L > u_R
+
+	\end{matrix} \right. \]
+
+$\bullet$ Flux de Godunov pour le cas $u_L > u_R$ :
+\[ f(a,b) = c R(u_L,u_R,0) = c u_L \]
+
+\end{recap}
 
 4.
 
@@ -126,14 +206,14 @@ x(t) = \left\{ \begin{matrix}
 	x_0 \text{ pour } x_0 > 1
 \end{matrix} \right. \]
 
-\begin{figure}
+\begin{figure}[h]
   \input{figure/figure1.tex}
   \caption{Courbes caractéristiques \ref{eq3}}
 \end{figure}
 
 On voit que deux courbes peuvent se croiser. Nous obtenons 4 zones.
 
-\begin{figure} 
+\begin{figure}[h]
   \input{figure/figure2.tex}
   \caption{Différentes zones \ref{eq3}}
 \end{figure}
@@ -171,7 +251,7 @@ Nous avons résolue le problème au sens de Lax et la solution est :
 \tag{Sol3}
 \]
 
-\begin{figure}
+\begin{figure}[h]
   \input{figure/figure3.tex}
   \caption{Solution de l'équation \ref{eq3}}
 \end{figure}
@@ -195,7 +275,7 @@ Nous avons deux cas :
 
 $\bullet$ $u_L < u_R$, alors $u_L^{-1} > u_R^{-1}$. Les courbes caractéristiques ne se rencontrent pas.
 
-\begin{figure}
+\begin{figure}[h]
   \input{figure/figure4.tex}
   \caption{Courbes caractéristiques pour $u_L < u_R$ \ref{eq4}}
 \end{figure}
@@ -208,30 +288,30 @@ Nous avons trois zones :
 
 - $zone3 = (x,t)$ tel que $u_L t < x < u_R t$ qui est plus complexe.
 
-\begin{figure}
+\begin{figure}[h]
   \input{figure/figure5.tex}
   \caption{Différentes zones $u_L < u_R$ \ref{eq4}}
 \end{figure}
 
 Résolvons l'équation sur la deuxième partie. On veut trouver une fonction sur cet ensemble qui vérifie l'équation de Burgers et que la fonction globale soit continue.
 
-Regardons $u(x,t) = \frac{x}{t}$ sur $zone1$. Ce raccord fonctionne-t'il ?
+Regardons $\tilde{u}(x,t) = \frac{x}{t}$ sur $zone3$. Ce raccord fonctionne-t'il ?
 
 D'une part :
-\[ \frac{\partial f}{\partial t}(x,t) = -\frac{x}{t^2} \]
+\[ \frac{\partial \tilde{u}}{\partial t}(x,t) = -\frac{x}{t^2} \]
 
 
 D'autre part :
-\[ f(x,t) \frac{\partial f}{\partial}(x,t) = \frac{x}{t} \times \frac{1}{t} = \frac{x}{t^2} \]
+\[ \tilde{u}((x,t) \frac{\partial \tilde{u}}{\partial}(x,t) = \frac{x}{t} \times \frac{1}{t} = \frac{x}{t^2} \]
 
-On a que $f$ vérifie l'équation de Burgers sur la $zone3$.
-\[ \frac{\partial f}{\partial t}(x,t) + f(x,t) \frac{\partial f}{\partial}(x,t) = -\frac{x}{t^2} + \frac{x}{t^2} = 0 \]
+On a que $\tilde{u}($ vérifie l'équation de Burgers sur la $zone3$.
+\[ \frac{\partial \tilde{u}}{\partial t}(x,t) + \tilde{u}(x,t) \frac{\partial \tilde{u}}{\partial}(x,t) = -\frac{x}{t^2} + \frac{x}{t^2} = 0 \]
 
 Maintenant, regardons si la fonction globale  (qui vérifie l'équation)
 \[
 u(x,t) = \left\{ \begin{matrix}
 			u_L \text{ pour } x < u_L t \\
-			f(x,t) \text{ pour } u_L t < x < u_R t \\
+			\frac{x}{t} \text{ pour } u_L t < x < u_R t \\
 			u_R \text{ pour } x > u_R t
 \end{matrix} \right.
 \tag{Sol4.1}
@@ -246,7 +326,7 @@ Pour $x = u_L t$ : $f(x,t) = \frac{u_L t}{t} = u_L$ et pour $x = u_R t$ : $f(x,t
 
 Alors la fonction $u$ vérifie l'équation au sens de Lax.
 
-\begin{figure}
+\begin{figure}[h]
   \input{figure/figure6.tex}
   \caption{Solution de l'équation $u_L < u_R$ \ref{eq4}}
 \end{figure}
@@ -254,7 +334,7 @@ Alors la fonction $u$ vérifie l'équation au sens de Lax.
 
 $\bullet$ $u_L > u_R$, alors $u_L^{-1} < u_R^{-1}$. Les courbes caractéristiques se rencontrent (toutes les courbes de droite rencontre toutes les courbes de gauche).
 
-\begin{figure}
+\begin{figure}[h]
   \input{figure/figure7.tex}
   \caption{Courbes caractéristiques $u_L > u_R$ \ref{eq4}}
 \end{figure}
@@ -277,52 +357,34 @@ La frontière du choc est une droite de pente $\sigma^{-1}$ et d'origine $(0,0)$
 
 3.
 
-4.
+\begin{recap}{Schéma de Godunov pour l'équation de burgers}
 
-\section{TP2}
+Pour l'équation de transport (avec $c>0$), nous avons :
 
-\subsection{Résolution numérique du système de Saint-Venant}
+$\bullet$ $f(u) = \frac{u^2}{2}$
 
-1.
+$\bullet$ Solveur de Riemann ($\sigma = \frac{u_L+u_R}{2}$) :
+\[ R(u_L, u_R, z) = \left\{ \begin{matrix}
 
-2.
+	\left\{ \begin{matrix}
+		u_L \text{ pour } z < u_L \\
+		z \text{ pour } u_L < z < u_R \\
+		u_R \text{ pour } z > u_R	
+	\end{matrix} \right. \text{ si } u_L < u_R \\	
+	
+	\left\{ \begin{matrix} 
+		u_L \text{ pour } z < \sigma \\
+		u_R \text{ pour } z > \sigma
+	\end{matrix} \right. \text{ si } u_L > u_R
 
-3.
+	\end{matrix} \right. \]
 
-4.
+$\bullet$ Flux de Godunov pour le cas $u_L > u_R$ :
+\[ f(a,b) = \frac{R(u_L,u_R,0)^2}{2}\]
 
-5.
-
-6.
-
-7.
-
-8.
-
-9.
-
-10.
-
-11.
-
-\section{TP3}
-
-\subsection{Résolution numérique du système de Saint-Venant en deux dimensions}
-
-1.
-
-2.
-
-3.
+\end{recap}
 
 4.
 
-5.
-
-6.
-
-7.
-
-8.
 
 \end{document}
