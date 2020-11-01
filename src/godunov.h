@@ -60,7 +60,7 @@ typedef struct godunov_error{
     int len_liste_N;
     int * liste_N;
 
-    double (*perror)(int, int, double*, double*); // error (norm_L1, L2, inf...)
+    double (*perror)(int, double*, double*); // error (norm_L1, L2, inf...)
 
     double * liste_error;
     unsigned long * liste_time;

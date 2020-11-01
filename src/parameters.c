@@ -188,30 +188,38 @@ void boundary_temporal_right_burgers2(double xmax, double t, double *w){
 // Calcul des normes
 //-----------------------------------------------------------------------------
 
-double norm_L1(int I, int m, double * a, double * b){
+double norm_L1(int I, double * a, double * b){
     // Calcul l'erreur en norme L_1 entre le tableau a et le tableau b
 
      double sum = 0;
      
-     for (int i=0; i<I; i++){
-         for (int iv=0; iv<m; iv++){
-            sum += fabs(a[i*m+iv] - b[i*m+iv]);
-         }
-     }
+     for (int i=0; i<I; i++)
+            sum += fabs(a[i] - b[i]);
 
-     return sum / I / m;
+     return sum / I;
 }
 
-double norm_L2(int I, int m, double * a, double * b){
+double norm_L2(int I, double * a, double * b){
     // Calcul l'erreur en norme L_1 entre le tableau a et le tableau b
 
      double sum = 0;
 
-     for (int i=0; i<I; i++){
-         for (int iv=0; i<m; i++){
-            sum += (a[i*m+iv] - b[i*m+iv]) * (a[i*m+iv] - b[i*m+iv]);
-         }
-     }
+     for (int i=0; i<I; i++)
+            sum += (a[i] - b[i]) * (a[i] - b[i]);
 
-     return sum / I / m;
+     return sum / I;
+}
+
+double norm_inf(int I, double * a, double * b){
+    // Calcul l'erreur en norme L_1 entre le tableau a et le tableau b
+
+    double norm = fabs(a[0] - b[0]);
+    double inter;
+
+    for (int i=0; i<I; i++){
+        inter = fabs(a[i] - b[i]);
+        if (inter > norm)
+            norm = inter;
+    }
+    return norm;
 }

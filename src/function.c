@@ -517,7 +517,7 @@ void godunov_error_compute(godunov_error *pgderr){
 
         godunov_solve(&gd, 0);
 
-        pgderr->liste_error[i] = pgderr->perror(gd.N+2, gd.m, gd.un, gd.sol);
+        pgderr->liste_error[i] = pgderr->perror((gd.N+2)*gd.m, gd.un, gd.sol);
         pgderr->liste_time[i] = gd.time;
 
         printf("Compute error for N=%d error=%f time=%ld s\n", gd.N, pgderr->liste_error[i], pgderr->liste_time[i]);   
