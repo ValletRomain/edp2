@@ -16,3 +16,4 @@ plots/
 *.avi
 new_src/
 output/
+execute.bash
