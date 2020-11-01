@@ -1,5 +1,5 @@
 /* Application godunov : resolve the schema of godunov
-usage : godunov {g|r|gr} [v] path_input path_output
+usage : solve {g|r|gr} [v] path_input path_output
 */
 
 #include <stdlib.h>
@@ -45,7 +45,7 @@ int main(int argc, char * argv[]){
         errflag++;
     
     if (errflag)
-        raler(0, "usage : godunov {g|r|gr} [a] path_input path_output");
+        raler(0, "usage : solve {g|r|gr} [a] path_input path_output");
 
     char * path_input = malloc(CHEMIN_MAX);
     char * path_output = malloc(CHEMIN_MAX);

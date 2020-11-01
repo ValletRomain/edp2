@@ -9,15 +9,46 @@
 
 int main(int argc, char * argv[]){
 
-    if (argc != 3){
-        raler(0, "usage : godunov_error init_file output_path");
+    int c, errflag=0, gflag=0, rflag=0;
+    extern char *optarg;
+    extern int optind;
+
+    while ( (c=getopt(argc, argv, "agr"))!=-1 ){
+        switch (c) {        
+        case 'g':
+            gflag++;
+            break;
+
+        case 'r':
+            rflag++;
+            break;
+
+        default:
+            errflag++;
+            break;
+        }
     }
+
+    if ((gflag==0) && (rflag==0))
+        errflag++;
+
+    if ((argc-optind) != 2)
+        errflag++;
+    
+    if (errflag)
+        raler(0, "usage : compute_error {g|r|gr} path_input path_output");
+
+    char * path_input = malloc(CHEMIN_MAX);
+    char * path_output = malloc(CHEMIN_MAX);
+    strcpy(path_input, argv[optind]);
+    optind++;
+    strcpy(path_output, argv[optind]);
 
     parameters_error parerr = {0};
     
-    parameters_error_init_file(&parerr, argv[1]);
+    parameters_error_init_file(&parerr, path_input);
     parameters_error_compute(&parerr);
-    parameters_error_plot(&parerr, argv[2]);
+    parameters_error_plot(&parerr, path_output);
     parameters_error_free(&parerr);
 
     exit(0);
