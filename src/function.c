@@ -242,7 +242,7 @@ void parameters_free(parameters *ppar){
 //-----------------------------------------------------------------------------
 // Solveur
 
-void parameters_solve(parameters *ppar, int option_visual){
+void godunov_solve(parameters *ppar, int option_visual){
     // Solve the problem of ppar
     // option_visual give visuality on terminal
     
@@ -514,7 +514,7 @@ void parameters_error_compute(parameters_error *pparerr){
                         pparerr->m, pparerr->liste_N[i],
                         pparerr->option_godunov);
 
-        parameters_solve(&par, 0);
+        godunov_solve(&par, 0);
 
         pparerr->liste_error[i] = pparerr->perror((par.N+2)*par.m, par.un, par.sol);
         pparerr->liste_time[i] = par.time;
