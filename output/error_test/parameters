@@ -1,0 +1,8 @@
+Parametres output/error_test:
+
+len_liste_N 3
+liste_N 10 20 30 
+m 1
+xmin -1.000000
+xmax 1.000000
+cfl 0.500000
