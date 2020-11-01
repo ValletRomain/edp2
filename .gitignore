@@ -15,5 +15,5 @@ animation/
 plots/
 *.avi
 new_src/
-output/
 execute.bash
+output/
