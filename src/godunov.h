@@ -21,7 +21,7 @@ typedef struct godunov{
     double tmax;
     char * option_godunov; // equation is resolve (burgers, transport...)
 
-    void (*pfluxnum)(double*, double*, double, double*);
+    void (*pfluxnum)(double*, double*, double*);
     double (*plambda_ma)(double*);
 
     void (*pboundary_spatial)(double, double*);

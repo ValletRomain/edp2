@@ -267,11 +267,11 @@ void godunov_solve(godunov *pgd, int option_visual){
         pgd->dt = pgd->cfl * pgd->dx / vmax;
         for(int i = 1; i < pgd->N+1; i++){
             double flux[m];
-            pgd->pfluxnum(pgd->un + i*m, pgd->un + (i+1)*m, vmax, flux);
+            pgd->pfluxnum(pgd->un + i*m, pgd->un + (i+1)*m, flux);
             for(int iv = 0; iv < m; iv++){
                 pgd->unp1[i*m + iv] = pgd->un[i*m + iv] - pgd->dt/pgd->dx * flux[iv];
             }
-            pgd->pfluxnum(pgd->un + (i - 1) * m, pgd->un + i * m, vmax, flux);
+            pgd->pfluxnum(pgd->un + (i - 1) * m, pgd->un + i * m, flux);
             for(int iv = 0; iv < m;iv++){
                 pgd->unp1[i * m + iv] += pgd->dt / pgd->dx * flux[iv];
             }

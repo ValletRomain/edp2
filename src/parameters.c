@@ -10,18 +10,47 @@
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Equation of transport
+
+double Riemann_global_transport(double u_L, double u_R, double z, double c){
+
+    double r;
+
+    if (u_L < u_R){
+        if (z < u_L)
+            r = u_L;
+        else if (z > u_R)
+            r = u_R;
+        else
+            r = z;
+    }
+    else {        
+        if (z < c)
+            r = u_L;
+        else 
+            r = u_R;
+    }
+
+    return r;
+}
+
 // Example 1 of resolution of equation of transport
 
 // vitesse de transport
 #define _C1 1
 
+double Riemann_transport1(double u_L, double u_R, double z){
+
+    return Riemann_global_transport(u_L, u_R, z, _C1);
+}
+
 double lambda_ma_trans1(double *u){
      return _C1;
 }
 
-void fluxnum_trans1(double *a, double *b, double vmax, double *flux){
+void fluxnum_trans1(double *a, double *b, double *flux){
     
-     flux[0] = _C1 * a[0];
+    flux[0] = _C1 * Riemann_transport1(a[0], b[0], 0);
 }
 
 void solexacte_trans1(const double x, const double t, double *w){
@@ -52,32 +81,56 @@ void boundary_temporal_right_trans1(double xmax, double t, double *w){
     solexacte_trans1(xmax, t, w);
 }
 
-
 //-----------------------------------------------------------------------------
+// Equation of Burgers
+
+double Riemann_burgers(double u_L, double u_R, double z){
+
+    double sigma = (u_L + u_R) / 2;
+    double r;
+
+    if (u_L < u_R){
+        if (z < u_L)
+            r = u_L;
+        else if (z > u_R)
+            r = u_R;
+        else 
+            r = z;
+    }
+    else {
+        if (z < sigma)
+            r = u_L;
+        else
+            r = u_R;
+    }
+
+    return r;
+}
+
+double lambda_ma_burgers(double *a){
+     return a[0];
+}
+
+void fluxnum_burgers(double *a, double *b, double *flux){
+    
+    double r = Riemann_burgers(a[0], b[0], 0);
+    flux[0] = r * r / 2;
+}
+
 // Example 1 of resolution of equation of burgers avec u_L > u_R
 
 #define u_L1 2
 #define u_R1 1
 
-double lambda_ma_burgers1(double *a){
-     return a[0];
-}
-
-void fluxnum_burgers1(double *a, double *b, double vmax, double *flux){
-    
-     flux[0] = (b[0]-a[0]) / 2 * ((a[0]+b[0])/2 - vmax);
-}
-
 void solexacte_burgers1(double x, double t, double *w){
 
     double sigma = (u_L1+u_R1) / 2;
 
-     if (x < sigma * t){
-         w[0] = u_L1;
-     } else {
-         w[0] = u_R1;
-     }
-
+    if (x < sigma * t){
+        w[0] = u_L1;
+    } else {
+        w[0] = u_R1;
+    }
 }
 
 void boundary_spatial_burgers1(double x, double *w){
@@ -95,21 +148,10 @@ void boundary_temporal_right_burgers1(double xmax, double t, double *w){
     solexacte_burgers1(xmax, t, w);
 }
 
-
-//-----------------------------------------------------------------------------
 // Example 1 of resolution of equation of burgers avec u_L < u_R
 
 #define u_L2 2
 #define u_R2 1
-
-double lambda_ma_burgers2(double *a){
-     return a[0];
-}
-
-void fluxnum_burgers2(double *a, double *b, double vmax, double *flux){
-    
-     flux[0] = (b[0]-a[0]) / 2 * ((a[0]+b[0])/2 - vmax);
-}
 
 void solexacte_burgers2(double x, double t, double *w){
 

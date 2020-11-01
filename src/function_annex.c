@@ -34,8 +34,8 @@ void godunov_parameters(godunov * pgd, char * option){
         }
     }
     else if (strcmp(option,"burgers_1d_1") == 0){
-        pgd->pfluxnum = fluxnum_burgers1;
-        pgd->plambda_ma = lambda_ma_burgers1;
+        pgd->pfluxnum = fluxnum_burgers;
+        pgd->plambda_ma = lambda_ma_burgers;
         pgd->pboundary_spatial = boundary_spatial_burgers1;
         pgd->pboundary_temporal_left = boundary_temporal_left_burgers1;
         pgd->pboundary_temporal_right = boundary_temporal_right_burgers1;
@@ -45,8 +45,8 @@ void godunov_parameters(godunov * pgd, char * option){
         }
     }
     else if (strcmp(option,"burgers_1d_2") == 0){
-        pgd->pfluxnum = fluxnum_burgers2;
-        pgd->plambda_ma = lambda_ma_burgers2;
+        pgd->pfluxnum = fluxnum_burgers;
+        pgd->plambda_ma = lambda_ma_burgers;
         pgd->pboundary_spatial = boundary_spatial_burgers2;
         pgd->pboundary_temporal_left = boundary_temporal_left_burgers2;
         pgd->pboundary_temporal_right = boundary_temporal_right_burgers2;
