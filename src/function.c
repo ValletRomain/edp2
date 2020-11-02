@@ -336,7 +336,7 @@ void godunov_solve(parameters *ppar, int option_visual){
     }
     time_t end = time(NULL);
 
-    ppar->time = (unsigned long) difftime(end, begin);
+    ppar->time_gd = (unsigned long) difftime(end, begin);
 
     if (option_visual){
         printf("Fin Resolution godunov\n");
@@ -397,7 +397,7 @@ void rusanov_solve(parameters * ppar, int option_visual){
     }
     time_t end = time(NULL);
 
-    ppar->time = (unsigned long) difftime(end, begin);
+    ppar->time_ru = (unsigned long) difftime(end, begin);
 
     if (option_visual)
         printf("Fin Resolution rusanov\n");
@@ -411,14 +411,11 @@ void rusanov_solve(parameters * ppar, int option_visual){
 // Input
 
 void parameters_error_init(parameters_error *pparerr,
-                        char * name_file,
                         int option_godunov, int option_rusanov,
                         double xmin, double xmax, double cfl, double tmax,
                         int m, int len_liste_N, int * liste_N,
                         char * option_error, char * option_equation){
     // Initialize the parameters_error with the arguments
-    
-    pparerr->name_file = name_file;
 
     pparerr->option_godunov = option_godunov;
     pparerr->option_rusanov = option_rusanov;
@@ -438,14 +435,23 @@ void parameters_error_init(parameters_error *pparerr,
 
     give_error_parameters(pparerr, option_error);
 
-    pparerr->liste_error = malloc(len_liste_N * sizeof(double));
-    pparerr->liste_time = malloc(len_liste_N * sizeof(unsigned long));
+    if (option_godunov){
+        pparerr->liste_error_gd = malloc(len_liste_N * sizeof(double));
+        pparerr->liste_time_gd = malloc(len_liste_N * sizeof(unsigned long));
+    }
+
+    if (option_rusanov){
+        pparerr->liste_error_ru = malloc(len_liste_N * sizeof(double));
+        pparerr->liste_time_ru = malloc(len_liste_N * sizeof(unsigned long));
+    }
 
     printf("Fin Initialisation\n");
 }
 
-void parameters_error_init_file(parameters_error *pparerr, char * name_input, int option_godunov, int option_rusanov){
-    // Initialize of parameters_error pparerr with file of path name_input
+void parameters_error_init_file(parameters_error *pparerr,
+                                char * path_input, char * path_output,
+                                int option_godunov, int option_rusanov){
+    // Initialize of parameters_error pparerr with file of path path_input
 
     FILE * file = NULL;
     char * line = malloc(CHEMIN_MAX);
@@ -457,8 +463,8 @@ void parameters_error_init_file(parameters_error *pparerr, char * name_input, in
     // Sauvegarde du nom du fichier
     
     char * name_file = malloc(CHEMIN_MAX);
-    strcpy(name_file, name_input);
-    strcpy(str, name_input);
+    strcpy(name_file, path_input);
+    strcpy(str, path_input);
 
     strtok(str, separators1); 
     while ( (str=strtok(NULL, separators1)) != NULL){
@@ -468,11 +474,11 @@ void parameters_error_init_file(parameters_error *pparerr, char * name_input, in
     //--------------------------------------------------------
     // Lecture du fichier
 
-    file = fopen(name_input, "r");
+    file = fopen(path_input, "r");
 
     // La consigne + le saut de ligne
     fgets(line, CHEMIN_MAX, file);
-    printf("Initialisation <- %s\n", name_input);
+    printf("Initialisation <- %s\n", path_input);
     fgets(line, CHEMIN_MAX, file);
 
     // option_error :
@@ -546,45 +552,56 @@ void parameters_error_init_file(parameters_error *pparerr, char * name_input, in
     fclose(file);
 
     //--------------------------------------------------------
-    // Initialisation of pparerr 
+    // Initialization of ppar
     
-    parameters_error_init(pparerr, name_file,
-                    option_godunov, option_rusanov,
-                    xmin, xmax, cfl, tmax,
-                    m, len_liste_N, liste_N,
-                    option_error, option_equation);
+    // Save of path_input
+    pparerr->path_input = malloc(CHEMIN_MAX);
+    strcpy(pparerr->path_input, path_input);
+    
+    // Save of name_input
+    pparerr->name_file = malloc(CHEMIN_MAX);
+    strcpy(pparerr->name_file, name_file);
+    
+    // Creation of path of output (ppar->complete_output_path)
+    pparerr->complete_path_output = malloc(CHEMIN_MAX);
+    strcpy(pparerr->complete_path_output, path_output);
+    strcat(pparerr->complete_path_output, pparerr->name_file);
 
-    free(option_error);
-    free(option_equation);
+    // Initialization of other parameters
+    parameters_error_init(pparerr,
+                            option_godunov, option_rusanov,
+                            xmin, xmax, cfl, tmax,
+                            m, len_liste_N, liste_N,
+                            option_error, option_equation);
+
+    //--------------------------------------------------------
+    // Creation of folder
+
+    // Creation of folder output
+    mkdir(pparerr->complete_path_output, ACCESSPERMS);
+    
+    // Creation of parameters
+    parerr_create_parameters(pparerr);
+
+    printf("Creation of directory -> %s\n", pparerr->complete_path_output);
+
+    printf("Fin Initialisation\n");
 }
 
 
 //-----------------------------------------------------------------------------
 // Ouput
 
-void parameters_error_plot(parameters_error *pparerr, char * output_path){
+void parameters_error_plot(parameters_error *pparerr){
     // Creation of folder (of path output_path) of result of pparerr
 
-    // Creation du dossier
-    char * output_path_final = malloc(CHEMIN_MAX);
-    strcpy(output_path_final, output_path);
-    strcat(output_path_final, pparerr->name_file);
-    
-    mkdir(output_path_final, ACCESSPERMS);
-
-    // Creation du fichier parameters
-    parerr_create_parameters(pparerr, output_path_final);
-
     // Creation du fichier plot.dat
-    parerr_create_plot(pparerr, output_path_final);
+    parerr_create_plot(pparerr);
 
     // Creation du fichier plotcom.gnu si il n'existe pas
-    parerr_create_execute_gnu(pparerr, output_path_final);
+    parerr_create_execute_gnu(pparerr);
 
-    printf("Fin Plot -> %s\n", output_path_final);
-
-    free(output_path_final);
-
+    printf("Fin Plot -> %s\n", pparerr->complete_path_output);
 }
 
 
@@ -595,8 +612,8 @@ void parameters_error_free(parameters_error * pgd){
     // Liberate the tables of pgd
 
     free(pgd->liste_N);
-    free(pgd->liste_error);
-    free(pgd->liste_time);
+    //free(pgd->liste_error_gd);
+    //free(pgd->liste_time_ru);
 
     printf("Fin Liberation\n");
 }
@@ -619,12 +636,19 @@ void parameters_error_compute(parameters_error *pparerr){
                         pparerr->m, pparerr->liste_N[i],
                         pparerr->option_equation);
 
-        godunov_solve(&par, 0);
-
-        pparerr->liste_error[i] = pparerr->perror((par.N+2)*par.m, par.un, par.sol);
-        pparerr->liste_time[i] = par.time;
-
-        printf("Compute error for N=%d error=%f time=%ld s\n", par.N, pparerr->liste_error[i], pparerr->liste_time[i]);   
+        if (pparerr->option_godunov){
+            godunov_solve(&par, 0);
+            pparerr->liste_error_gd[i] = pparerr->perror((par.N+2)*par.m, par.un, par.sol);
+            pparerr->liste_time_gd[i] = par.time_gd;
+            printf("Compute error godunov for N=%d error=%f time=%ld s\n", par.N, pparerr->liste_error_gd[i], pparerr->liste_time_gd[i]);   
+        }
+        
+        if (pparerr->option_rusanov){
+            rusanov_solve(&par, 0);
+            pparerr->liste_error_ru[i] = pparerr->perror((par.N+2)*par.m, par.vn, par.sol);
+            pparerr->liste_time_ru[i] = par.time_ru;
+            printf("Compute error rusanov for N=%d error=%f time=%ld s\n", par.N, pparerr->liste_error_ru[i], pparerr->liste_time_ru[i]);   
+        } 
     }
 
     printf("Fin calcul des erreurs\n");

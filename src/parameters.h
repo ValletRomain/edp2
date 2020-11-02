@@ -42,7 +42,8 @@ typedef struct parameters{
 
 
     // Resultats du probleme
-    unsigned long time;
+    unsigned long time_gd;
+    unsigned long time_ru;
     
     double *xi; // centre des milieux des cellules
     
@@ -65,6 +66,9 @@ typedef struct parameters_error{
     // Name of different file or folder
     char * name_file;
 
+    char * path_input; // path of input file
+    char * complete_path_output; // path of output folder (output_path/name_file)
+
     char * option_error;
     char * option_equation;
     int option_godunov;
@@ -82,8 +86,11 @@ typedef struct parameters_error{
 
     double (*perror)(int, double*, double*); // error (norm_L1, L2, inf...)
 
-    double * liste_error;
-    unsigned long * liste_time;
+    double * liste_error_gd;
+    unsigned long * liste_time_gd;
+
+    double * liste_error_ru;
+    unsigned long * liste_time_ru;
 
 } parameters_error;
 
@@ -106,16 +113,16 @@ void godunov_solve(parameters *par, int option_visual);
 void rusanov_solve(parameters *par, int option_visual);
 
 void parameters_error_init(parameters_error *pperr,
-                        char * name_file,
                         int option_godunov, int option_rusanov,
                         double xmin, double xmax, double cfl, double tmax,
                         int m, int len_liste_N, int * liste_N,
                         char * option_error, char * option_equation);
 
-void parameters_error_init_file(parameters_error *pperr, char * name_input,
+void parameters_error_init_file(parameters_error *pperr,
+                        char * path_input, char * path_output,
                         int option_godunov, int option_rusanov);
 
-void parameters_error_plot(parameters_error *pperr, char * output_path);
+void parameters_error_plot(parameters_error *pperr);
 
 void parameters_error_free(parameters_error * pperr);
 

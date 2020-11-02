@@ -128,7 +128,10 @@ void par_create_parameters(parameters * ppar){
     fprintf(fic, "xmin %f\n", ppar->xmin);
     fprintf(fic, "xmax %f\n", ppar->xmax);
     fprintf(fic, "cfl %f\n", ppar->cfl);
-    fprintf(fic, "time %ld\n", ppar->time);
+    if (ppar->option_godunov)
+        fprintf(fic, "time %ld\n", ppar->time_gd);
+    if (ppar->option_rusanov)
+        fprintf(fic, "time %ld\n", ppar->time_gd);
     
     fclose(fic);
     free(name_file);
@@ -336,16 +339,16 @@ void par_create_animation(parameters * ppar, int type_schema){
 //-----------------------------------------------------------------------------
 // Fonction pour créer les fichiers outputs parameters_error
 
-void parerr_create_parameters(parameters_error * pparerr, char * output_path){
+void parerr_create_parameters(parameters_error * pparerr){
     // Create parameters for parameters_error object pparerr
 
     char * name_output = malloc(CHEMIN_MAX);
-    strcpy(name_output, output_path);
+    strcpy(name_output, pparerr->complete_path_output);
     strcat(name_output, "/parameters");
 
     FILE *fic = fopen(name_output, "w");
 
-    fprintf(fic, "Parametres %s:\n\n", output_path);
+    fprintf(fic, "Parametres %s:\n\n", pparerr->complete_path_output);
     fprintf(fic, "len_liste_N %d\n", pparerr->len_liste_N);
     fprintf(fic, "liste_N ");
     for (int i=0; i<pparerr->len_liste_N; i++){
@@ -361,54 +364,76 @@ void parerr_create_parameters(parameters_error * pparerr, char * output_path){
     free(name_output);
 }
 
-void parerr_create_plot(parameters_error * pparerr, char * output_path){
+void parerr_create_plot(parameters_error * pparerr){
     // Create plot.dat for parameters_error object pparerr
 
     char * name_output = malloc(CHEMIN_MAX);
-    strcpy(name_output, output_path);
+    strcpy(name_output, pparerr->complete_path_output);
     strcat(name_output, "/plot.dat");
 
     FILE *fic = fopen(name_output, "w");
 
-    for (int i = 0; i < pparerr->len_liste_N; i++)
-        fprintf(fic, "%d %f %ld\n", pparerr->liste_N[i], pparerr->liste_error[i], pparerr->liste_time[i]);
+    for (int i = 0; i < pparerr->len_liste_N; i++){
+        fprintf(fic, "%d ", pparerr->liste_N[i]);
+        if (pparerr->option_godunov)
+            fprintf(fic, "%f %ld ", pparerr->liste_error_gd[i], pparerr->liste_time_gd[i]);
+        
+        if (pparerr->option_rusanov)
+            fprintf(fic, "%f %ld ", pparerr->liste_error_ru[i], pparerr->liste_time_ru[i]);
+        fprintf(fic, "\n");
+    }
 
     fclose(fic);
     free(name_output);
 }
 
-void parerr_create_execute_gnu(parameters_error * pparerr, char * output_path){
+void parerr_create_execute_gnu(parameters_error * pparerr){
     // Create and execute the gnuplot script plotcom.gnu for parameters_error object pparerr
 
     char * name_file = malloc(CHEMIN_MAX);
-    strcpy(name_file, output_path);
+    strcpy(name_file, pparerr->complete_path_output);
     strcat(name_file, "/plotcom.gnu");
 
     FILE *fic = fopen(name_file, "w");
     
     fprintf(fic, "set terminal pngcairo\n\n");
+
     fprintf(fic, "# Graphic of error\n");
-    fprintf(fic, "set output \'%s/error.png\'\n\n", output_path);
-    fprintf(fic, "set title \"Erreur du schéma de Godunov pour %s en %s\"\n", pparerr->option_equation, pparerr->option_error);
+    fprintf(fic, "set output \'%s/error.png\'\n\n", pparerr->complete_path_output);
+    fprintf(fic, "set title \"Erreur pour %s en %s\"\n", pparerr->option_equation, pparerr->option_error);
     fprintf(fic, "set xlabel \"N\"\n");
     fprintf(fic, "set ylabel \"error\"\n\n");
     fprintf(fic, "set logscale x 10\n");
-    fprintf(fic, "stats \'%s/plot.dat\' using 1:2 nooutput\n", output_path);
+    fprintf(fic, "stats \'%s/plot.dat\' using 1:2 nooutput\n", pparerr->complete_path_output);
     fprintf(fic, "set xrange [STATS_min_x:STATS_max_x]\n");
     fprintf(fic, "set yrange [0: STATS_max_y + %f * (STATS_max_y-STATS_min_y)]\n\n", BORDER);
-    fprintf(fic, "plot \'%s/plot.dat\' using 1:2 title \"error\" w lp\n\n", output_path);
+    if (pparerr->option_godunov)
+        fprintf(fic, "plot \'%s/plot.dat\' using 1:2 title \"error\" w lp", pparerr->complete_path_output);
+    if (pparerr->option_rusanov && !(pparerr->option_godunov))
+        fprintf(fic, "plot \'%s/plot.dat\' using 1:2 title \"error\" w lp", pparerr->complete_path_output);
+    if (pparerr->option_rusanov && pparerr->option_godunov)
+        fprintf(fic, ", \'%s/plot.dat\' using 1:4 title \"error\" w lp", pparerr->complete_path_output);
+    fprintf(fic, "\n\n");
+
     fprintf(fic, "reset\n\n");
+    
     fprintf(fic, "# Graphic of time\n");
-    fprintf(fic, "set output \'%s/time.png\'\n\n", output_path);
+    fprintf(fic, "set output \'%s/time.png\'\n\n", pparerr->complete_path_output);
     fprintf(fic, "set title \"Duree\"\n");
     fprintf(fic, "set xlabel \"N\"\n");
     fprintf(fic, "set ylabel \"time (s)\"\n\n");
     //fprintf(fic, "set logscale x 10\n");
     fprintf(fic, "set autoscale y\n");
-    fprintf(fic, "stats \'%s/plot.dat\' using 1:3 nooutput\n", output_path);
+    fprintf(fic, "stats \'%s/plot.dat\' using 1:3 nooutput\n", pparerr->complete_path_output);
     fprintf(fic, "set xrange [STATS_min_x:STATS_max_x]\n");
     //fprintf(fic, "set yrange [0: 1 + STATS_max_y + %f * (STATS_max_y-STATS_min_y)]\n\n", BORDER);
-    fprintf(fic, "plot \'%s/plot.dat\' using 1:3 title \"time\" w lp", output_path);
+    if (pparerr->option_godunov)
+        fprintf(fic, "plot \'%s/plot.dat\' using 1:3 title \"error\" w lp", pparerr->complete_path_output);
+    if (pparerr->option_rusanov && !(pparerr->option_godunov))
+        fprintf(fic, "plot \'%s/plot.dat\' using 1:3 title \"error\" w lp", pparerr->complete_path_output);
+    if (pparerr->option_rusanov && pparerr->option_godunov)
+        fprintf(fic, ", \'%s/plot.dat\' using 1:5 title \"error\" w lp", pparerr->complete_path_output);
+    fprintf(fic, "\n\n");
     
     fclose(fic);
     free(name_file);
@@ -416,7 +441,7 @@ void parerr_create_execute_gnu(parameters_error * pparerr, char * output_path){
     // Execution de la commande gnuplot
     char * name_command = malloc(CHEMIN_MAX);
     strcpy(name_command, "gnuplot ");
-    strcat(name_command, output_path);
+    strcat(name_command, pparerr->complete_path_output);
     strcat(name_command, "/plotcom.gnu");
     
     int status = system(name_command);
