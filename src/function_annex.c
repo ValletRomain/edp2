@@ -34,8 +34,12 @@ void give_parameters(parameters * ppar, char * option){
     // If option do not exist, a alert message is send
 
     if (strcmp(option,"transport_1d_1") == 0){
-        ppar->pfluxnum = fluxnum_trans1;
         ppar->plambda_ma = lambda_ma_trans1;
+
+        ppar->pfluxnum_gd = fluxnum_gd_trans1;
+
+        ppar->pfluxnum_ru = fluxnum_ru_trans1;
+
         ppar->pboundary_spatial = boundary_spatial_trans1;
         ppar->pboundary_temporal_left = boundary_temporal_left_trans1;
         ppar->pboundary_temporal_right = boundary_temporal_right_trans1;
@@ -45,8 +49,12 @@ void give_parameters(parameters * ppar, char * option){
         }
     }
     else if (strcmp(option,"burgers_1d_1") == 0){
-        ppar->pfluxnum = fluxnum_burgers;
         ppar->plambda_ma = lambda_ma_burgers;
+
+        ppar->pfluxnum_gd = fluxnum_gd_burgers;
+
+        ppar->pfluxnum_ru = fluxnum_ru_burgers;
+
         ppar->pboundary_spatial = boundary_spatial_burgers1;
         ppar->pboundary_temporal_left = boundary_temporal_left_burgers1;
         ppar->pboundary_temporal_right = boundary_temporal_right_burgers1;
@@ -56,8 +64,12 @@ void give_parameters(parameters * ppar, char * option){
         }
     }
     else if (strcmp(option,"burgers_1d_2") == 0){
-        ppar->pfluxnum = fluxnum_burgers;
         ppar->plambda_ma = lambda_ma_burgers;
+
+        ppar->pfluxnum_gd = fluxnum_gd_burgers;
+        
+        ppar->pfluxnum_ru = fluxnum_ru_burgers;
+
         ppar->pboundary_spatial = boundary_spatial_burgers2;
         ppar->pboundary_temporal_left = boundary_temporal_left_burgers2;
         ppar->pboundary_temporal_right = boundary_temporal_right_burgers2;

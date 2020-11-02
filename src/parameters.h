@@ -23,13 +23,21 @@ typedef struct parameters{
     double dt, dx;
     double tmax;
 
-    void (*pfluxnum)(double*, double*, double*);
+    // Parameters of equation
     double (*plambda_ma)(double*);
 
+    // Flux for godunov
+    void (*pfluxnum_gd)(double*, double*, double*);
+
+    // Flux for rusanov
+    void (*pfluxnum_ru)(double*, double*, double*);
+
+    // Border condition
     void (*pboundary_spatial)(double, double*);
     void (*pboundary_temporal_left)(double, double, double*);
     void (*pboundary_temporal_right)(double, double, double*);
 
+    // Solution exacte
     void (*psolexacte)(double, double, double*);
 
 
@@ -37,8 +45,12 @@ typedef struct parameters{
     unsigned long time;
     
     double *xi; // centre des milieux des cellules
+    
+    // Godunov
     double *un; // solution a l'instant n
     double *unp1; // solution a l'instant n+1
+
+    // Rusanov
     double *vn; // solution a l'instant n
     double *vnp1; // solution a l'instant n+1
     double *sol; // solution exact

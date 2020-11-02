@@ -34,6 +34,15 @@ double Riemann_global_transport(double u_L, double u_R, double z, double c){
     return r;
 }
 
+double fluxnum_global_transport_ru(double a, double b, double c){
+
+    if (c > 0)
+        return c * a;
+    else
+        return c * b;
+    
+}
+
 // Example 1 of resolution of equation of transport
 
 // vitesse de transport
@@ -48,9 +57,14 @@ double lambda_ma_trans1(double *u){
      return _C1;
 }
 
-void fluxnum_trans1(double *a, double *b, double *flux){
+void fluxnum_gd_trans1(double *a, double *b, double *flux){
     
     flux[0] = _C1 * Riemann_transport1(a[0], b[0], 0);
+}
+
+void fluxnum_ru_trans1(double *a, double *b, double *flux){
+
+    flux[0] = fluxnum_global_transport_ru(a[0], b[0], _C1);
 }
 
 void solexacte_trans1(const double x, const double t, double *w){
@@ -84,6 +98,10 @@ void boundary_temporal_right_trans1(double xmax, double t, double *w){
 //-----------------------------------------------------------------------------
 // Equation of Burgers
 
+double lambda_ma_burgers(double *a){
+     return a[0];
+}
+
 double Riemann_burgers(double u_L, double u_R, double z){
 
     double sigma = (u_L + u_R) / 2;
@@ -107,14 +125,15 @@ double Riemann_burgers(double u_L, double u_R, double z){
     return r;
 }
 
-double lambda_ma_burgers(double *a){
-     return a[0];
-}
-
-void fluxnum_burgers(double *a, double *b, double *flux){
+void fluxnum_gd_burgers(double *a, double *b, double *flux){
     
     double r = Riemann_burgers(a[0], b[0], 0);
     flux[0] = r * r / 2;
+}
+
+void fluxnum_ru_burgers(double *a, double*b, double *flux){
+
+    flux[0] = 1/2 * (b[0]-a[0]) * ( (a[0]+b[0])/2 - fmax(fabs(a[0]),fabs(b[0])) );
 }
 
 // Example 1 of resolution of equation of burgers avec u_L > u_R

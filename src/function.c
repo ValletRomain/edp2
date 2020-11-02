@@ -289,7 +289,7 @@ void godunov_solve(parameters *ppar, int option_visual){
     int m = ppar->m;
 
     if (option_visual){
-        printf("Debut Resolution\n");
+        printf("Debut Resolution godunov\n");
     }
 
     time_t begin = time(NULL);
@@ -307,11 +307,11 @@ void godunov_solve(parameters *ppar, int option_visual){
         ppar->dt = ppar->cfl * ppar->dx / vmax;
         for(int i = 1; i < ppar->N+1; i++){
             double flux[m];
-            ppar->pfluxnum(ppar->un + i*m, ppar->un + (i+1)*m, flux);
+            ppar->pfluxnum_gd(ppar->un + i*m, ppar->un + (i+1)*m, flux);
             for(int iv = 0; iv < m; iv++){
                 ppar->unp1[i*m + iv] = ppar->un[i*m + iv] - ppar->dt/ppar->dx * flux[iv];
             }
-            ppar->pfluxnum(ppar->un + (i - 1) * m, ppar->un + i * m, flux);
+            ppar->pfluxnum_gd(ppar->un + (i - 1) * m, ppar->un + i * m, flux);
             for(int iv = 0; iv < m;iv++){
                 ppar->unp1[i * m + iv] += ppar->dt / ppar->dx * flux[iv];
             }
@@ -344,15 +344,60 @@ void godunov_solve(parameters *ppar, int option_visual){
 }
 
 void rusanov_solve(parameters * ppar, int option_visual){
-
-    ppar->vn[0] = 1;
-    for (int i=1; i<ppar->N+2; i++)
-        ppar->vn[i] = 0;
+    // Solve the problem of ppar
+    // option_visual give visuality on terminal
     
-    ppar->int_tnow_ru++;
+    int m = ppar->m;
 
-    if (ppar->option_animation)
-        par_create_plots(ppar, 1);
+    if (option_visual){
+        printf("Debut Resolution rusanov\n");
+    }
+
+    time_t begin = time(NULL);
+    
+    double tnow = 0;
+    while(tnow < ppar->tmax){
+        
+        // calcul de la vitesse max
+        double vmax = 0;
+        for (int i = 0; i < ppar->N + 2; i++){
+            double vloc = fabs(ppar->plambda_ma(ppar->vn + m * i));
+            vmax = vmax > vloc ? vmax : vloc;
+        }
+        
+        ppar->dt = ppar->cfl * ppar->dx / vmax;
+        for(int i = 1; i < ppar->N+1; i++){
+            double flux[m];
+            ppar->pfluxnum_ru(ppar->vn + i*m, ppar->vn + (i+1)*m, flux);
+            for(int iv = 0; iv < m; iv++){
+                ppar->vnp1[i*m + iv] = ppar->vn[i*m + iv] - ppar->dt/ppar->dx * flux[iv];
+            }
+            ppar->pfluxnum_ru(ppar->vn + (i - 1) * m, ppar->vn + i * m, flux);
+            for(int iv = 0; iv < m;iv++){
+                ppar->vnp1[i * m + iv] += ppar->dt / ppar->dx * flux[iv];
+            }
+        }
+        // mise à jour
+        tnow += ppar->dt;
+
+        if (option_visual){
+            printf("tnow = %f vmax = %f tmax = %f\n", tnow, vmax, ppar->tmax);
+        }
+        
+        // conditions aux limites
+        ppar->pboundary_temporal_left(ppar->xmin, tnow, ppar->vnp1);
+        ppar->pboundary_temporal_right(ppar->xmax, tnow, ppar->vnp1 + (ppar->N+1)*m);
+
+        memcpy(ppar->vn, ppar->vnp1, (ppar->N + 2) * m *sizeof(double));
+
+        if (ppar->option_animation){
+            ppar->int_tnow_gd++;
+            par_create_plots(ppar, 0);
+        }
+    }
+    time_t end = time(NULL);
+
+    ppar->time = (unsigned long) difftime(end, begin);
 
     if (option_visual)
         printf("Fin Resolution rusanov\n");
