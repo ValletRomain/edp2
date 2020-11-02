@@ -10,8 +10,11 @@ typedef struct parameters{
     char * complete_path_output; // path of output folder (output_path/name_file)
 
     // Option
-    int keept_solexacte; //keept the solution (=1) or not (=0)
+    int option_solexacte; //keept the solution (=1) or not (=0)
     int option_animation;
+    int option_godunov;
+    int option_rusanov;
+    char * option_equation; // equation is resolve (burgers, transport...)
 
     // Parametre du probleme
     int m, N; // m dimension of problem, N number of space point
@@ -19,7 +22,6 @@ typedef struct parameters{
     double cfl;
     double dt, dx;
     double tmax;
-    char * option_godunov; // equation is resolve (burgers, transport...)
 
     void (*pfluxnum)(double*, double*, double*);
     double (*plambda_ma)(double*);
@@ -37,9 +39,12 @@ typedef struct parameters{
     double *xi; // centre des milieux des cellules
     double *un; // solution a l'instant n
     double *unp1; // solution a l'instant n+1
+    double *vn; // solution a l'instant n
+    double *vnp1; // solution a l'instant n+1
     double *sol; // solution exact
 
-    int int_tnow;
+    int int_tnow_gd;
+    int int_tnow_ru;
 
 } parameters;
 
@@ -48,14 +53,17 @@ typedef struct parameters_error{
     // Name of different file or folder
     char * name_file;
 
+    char * option_error;
+    char * option_equation;
+    int option_godunov;
+    int option_rusanov;
+
     // Parametre du probleme
     int m; // nombre de variables conservatives, nombre de cellules
     double dt, dx; // pas de temps, pas d'espace
     double xmin, xmax; // bornes de l'intervalles
     double cfl; // vmax : dt/dx
     double tmax;
-    char * option_error;
-    char * option_godunov;
 
     int len_liste_N;
     int * liste_N;
@@ -68,26 +76,32 @@ typedef struct parameters_error{
 } parameters_error;
 
 void parameters_init(parameters *par,
-                    int keept_solexacte, int option_animation,
+                    int option_solexacte, int option_animation, int option_godunov, int option_rusanov,
                     double xmin, double xmax, double cfl, double tmax,
                     int m, int N,
-                    char * option_godunov);
+                    char * option_equation);
 
-void parameters_init_file(parameters *par, char * path_input, char * path_output, int option_animation);
+void parameters_init_file(parameters *par,
+                    char * path_input, char * path_output,
+                    int option_animation, int option_godunov, int option_rusanov);
 
 void parameters_plot(parameters *par);
 
 void parameters_free(parameters *par);
 
-void parameters_solve(parameters *par, int option_visual);
+void godunov_solve(parameters *par, int option_visual);
+
+void rusanov_solve(parameters *par, int option_visual);
 
 void parameters_error_init(parameters_error *pperr,
                         char * name_file,
+                        int option_godunov, int option_rusanov,
                         double xmin, double xmax, double cfl, double tmax,
                         int m, int len_liste_N, int * liste_N,
-                        char * option_error, char * option_godunov);
+                        char * option_error, char * option_equation);
 
-void parameters_error_init_file(parameters_error *pperr, char * name_input);
+void parameters_error_init_file(parameters_error *pperr, char * name_input,
+                        int option_godunov, int option_rusanov);
 
 void parameters_error_plot(parameters_error *pperr, char * output_path);
 

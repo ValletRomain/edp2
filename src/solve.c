@@ -56,18 +56,17 @@ int main(int argc, char * argv[]){
 
     parameters par = {0};
     
-    parameters_init_file(&par, path_input, path_output, aflag);
+    parameters_init_file(&par,
+                        path_input, path_output,
+                        aflag, gflag, rflag);
 
     if (gflag)
         godunov_solve(&par, 1);
-    
-    /*
     if (rflag)
         rusanov_solve(&par, 1);
-    */
 
     parameters_plot(&par);
-    parameters_free(&par);
+    //parameters_free(&par);
 
     exit(0);
 }

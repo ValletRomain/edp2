@@ -22,14 +22,16 @@
 // Input
 
 void parameters_init(parameters *ppar,
-                    int keept_solexacte, int option_animation,
+                    int option_solexacte, int option_animation, int option_godunov, int option_rusanov,
                     double xmin, double xmax, double cfl, double tmax,
                     int m, int N,
-                    char * option_godunov){
+                    char * option_equation){
     // Initialize the object pointed by ppar with the arguments
-    
-    ppar->keept_solexacte = keept_solexacte;
+
+    ppar->option_solexacte = option_solexacte;
     ppar->option_animation = option_animation;
+    ppar->option_godunov = option_godunov;
+    ppar->option_rusanov = option_rusanov;
 
     ppar->xmin = xmin;
     ppar->xmax = xmax;
@@ -37,29 +39,42 @@ void parameters_init(parameters *ppar,
     ppar->N = N;
     ppar->cfl = cfl;
     ppar->tmax = tmax;
-    give_parameters(ppar, option_godunov);
-    ppar->option_godunov = malloc(CHEMIN_MAX);
-    strcpy(ppar->option_godunov, option_godunov);
+    give_parameters(ppar, option_equation);
+    ppar->option_equation = malloc(CHEMIN_MAX);
+    strcpy(ppar->option_equation, option_equation);
 
     ppar->dx = (xmax - xmin) / N;
 
     ppar->xi = malloc((N+2) * sizeof(double) * m);
-    ppar->un = malloc((N+2) * sizeof(double) * m);
-    ppar->unp1 = malloc((N+2) * sizeof(double) * m);
-    ppar->sol = malloc((N+2) * sizeof(double)*m);
+
+    if (option_godunov){
+        ppar->un = malloc((N+2) * sizeof(double) * m);
+        ppar->unp1 = malloc((N+2) * sizeof(double) * m);
+    }
+    if (option_rusanov){
+        ppar->vn = malloc((N+2) * sizeof(double) * m);
+        ppar->vnp1 = malloc((N+2) * sizeof(double) * m);
+    }
+    if (option_solexacte)
+        ppar->sol = malloc((N+2) * sizeof(double)*m);
 
     for (int i = 0; i < N + 2; i++){
 
         ppar->xi[i] = xmin + ppar->dx/2 + (i-1)*ppar->dx;
-        ppar->pboundary_spatial(ppar->xi[i], ppar->un + i*m);
 
-        if (keept_solexacte){
+        if (option_godunov)
+            ppar->pboundary_spatial(ppar->xi[i], ppar->un + i*m);
+
+        if (option_rusanov)
+            ppar->pboundary_spatial(ppar->xi[i], ppar->vn + i*m);
+
+        if (option_solexacte)
             ppar->psolexacte(ppar->xi[i], tmax, ppar->sol + i*m);
-        }
+        
     }
 }
 
-void parameters_init_file(parameters *ppar, char * path_input, char * path_output, int option_animation){
+void parameters_init_file(parameters *ppar, char * path_input, char * path_output, int option_animation, int option_godunov, int option_rusanov){
     // Initialize the object pointed by ppar with the file of path name_input
 
     FILE * file = NULL;
@@ -90,20 +105,20 @@ void parameters_init_file(parameters *ppar, char * path_input, char * path_outpu
     printf("Initialisation <- %s\n", path_input);
     fgets(line, CHEMIN_MAX, file);
 
-    // keept_solexacte :
+    // option_solexacte :
     fgets(line, CHEMIN_MAX, file);
 
     str = strtok(line, separators);
     str = strtok(NULL, separators);
-    int keept_solexacte = atoi(str);
+    int option_solexacte = atoi(str);
 
-    // option :
+    // option_equation :
     fgets(line, CHEMIN_MAX, file);
 
     str = strtok(line, separators);
     str = strtok(NULL, separators);
-    char * option = malloc(CHEMIN_MAX);
-    strcpy(option, str);
+    char * option_equation = malloc(CHEMIN_MAX);
+    strcpy(option_equation, str);
 
     // xmin :
     fgets(line, CHEMIN_MAX, file);
@@ -166,7 +181,10 @@ void parameters_init_file(parameters *ppar, char * path_input, char * path_outpu
     strcat(ppar->complete_path_output, ppar->name_file);
 
     // Initialization of other parameters
-    parameters_init(ppar, keept_solexacte, option_animation, xmin, xmax, cfl, tmax, m, N, option);
+    parameters_init(ppar,
+                    option_solexacte, option_animation, option_godunov, option_rusanov,
+                    xmin, xmax, cfl, tmax,
+                    m, N, option_equation);
 
     //--------------------------------------------------------
     // Creation of folder
@@ -178,19 +196,38 @@ void parameters_init_file(parameters *ppar, char * path_input, char * path_outpu
     par_create_parameters(ppar);
 
     if (option_animation){
-        ppar->int_tnow = 0;
         
-        // Creation of folder plots in output
-        char * path_plots = malloc(CHEMIN_MAX);
-        strcpy(path_plots, ppar->complete_path_output);
-        strcat(path_plots, "/plots");
+        if (option_godunov){
+            ppar->int_tnow_gd = 0;
 
-        mkdir(path_plots, ACCESSPERMS);
+            // Creation of folder plots in output
+            char * path_plots_godunov = malloc(CHEMIN_MAX);
+            strcpy(path_plots_godunov, ppar->complete_path_output);
+            strcat(path_plots_godunov, "/plots_godunov");
 
-        free(path_plots);
+            mkdir(path_plots_godunov, ACCESSPERMS);
 
-        // Creation of plots0.dat
-        par_create_plots(ppar);
+            free(path_plots_godunov);
+
+            // Creation of plots0.dat
+            par_create_plots(ppar, 0);
+        }
+
+        if (option_rusanov){
+            ppar->int_tnow_ru = 0;
+
+            // Creation of folder plots in output
+            char * path_plots_rusanov = malloc(CHEMIN_MAX);
+            strcpy(path_plots_rusanov, ppar->complete_path_output);
+            strcat(path_plots_rusanov, "/plots_rusanov");
+
+            mkdir(path_plots_rusanov, ACCESSPERMS);
+
+            free(path_plots_rusanov);
+
+            // Creation of plots0.dat
+            par_create_plots(ppar, 1);
+        }
     }
 
     printf("Creation of folfer -> %s\n", ppar->complete_path_output);
@@ -214,10 +251,13 @@ void parameters_plot(parameters *ppar){
     
     // Creation and execution of file plotcom.gnu
     par_create_execute_gnu(ppar);
-
+    
     // Creation of animation
     if (ppar->option_animation){
-        par_create_animation(ppar);
+        if (ppar->option_godunov)
+            par_create_animation(ppar, 0);
+        if (ppar->option_godunov)
+            par_create_animation(ppar, 1);
     }
 
     printf("Fin Plot\n");
@@ -290,8 +330,8 @@ void godunov_solve(parameters *ppar, int option_visual){
         memcpy(ppar->un, ppar->unp1, (ppar->N + 2) * m *sizeof(double));
 
         if (ppar->option_animation){
-            ppar->int_tnow++;
-            par_create_plots(ppar);
+            ppar->int_tnow_gd++;
+            par_create_plots(ppar, 0);
         }
     }
     time_t end = time(NULL);
@@ -299,10 +339,24 @@ void godunov_solve(parameters *ppar, int option_visual){
     ppar->time = (unsigned long) difftime(end, begin);
 
     if (option_visual){
-        printf("Fin Resolution\n");
+        printf("Fin Resolution godunov\n");
     }
 }
 
+void rusanov_solve(parameters * ppar, int option_visual){
+
+    ppar->vn[0] = 1;
+    for (int i=1; i<ppar->N+2; i++)
+        ppar->vn[i] = 0;
+    
+    ppar->int_tnow_ru++;
+
+    if (ppar->option_animation)
+        par_create_plots(ppar, 1);
+
+    if (option_visual)
+        printf("Fin Resolution rusanov\n");
+}
 
 //-----------------------------------------------------------------------------
 // Calcul des erreurs
@@ -313,12 +367,16 @@ void godunov_solve(parameters *ppar, int option_visual){
 
 void parameters_error_init(parameters_error *pparerr,
                         char * name_file,
+                        int option_godunov, int option_rusanov,
                         double xmin, double xmax, double cfl, double tmax,
                         int m, int len_liste_N, int * liste_N,
-                        char * option_error, char * option_godunov){
+                        char * option_error, char * option_equation){
     // Initialize the parameters_error with the arguments
     
     pparerr->name_file = name_file;
+
+    pparerr->option_godunov = option_godunov;
+    pparerr->option_rusanov = option_rusanov;
 
     pparerr->xmin = xmin;
     pparerr->xmax = xmax;
@@ -329,9 +387,9 @@ void parameters_error_init(parameters_error *pparerr,
     pparerr->tmax = tmax;
 
     pparerr->option_error = malloc(CHEMIN_MAX);
-    pparerr->option_godunov = malloc(CHEMIN_MAX);
+    pparerr->option_equation = malloc(CHEMIN_MAX);
     strcpy(pparerr->option_error, option_error);
-    strcpy(pparerr->option_godunov, option_godunov);
+    strcpy(pparerr->option_equation, option_equation);
 
     give_error_parameters(pparerr, option_error);
 
@@ -341,7 +399,7 @@ void parameters_error_init(parameters_error *pparerr,
     printf("Fin Initialisation\n");
 }
 
-void parameters_error_init_file(parameters_error *pparerr, char * name_input){
+void parameters_error_init_file(parameters_error *pparerr, char * name_input, int option_godunov, int option_rusanov){
     // Initialize of parameters_error pparerr with file of path name_input
 
     FILE * file = NULL;
@@ -380,13 +438,13 @@ void parameters_error_init_file(parameters_error *pparerr, char * name_input){
     char * option_error = malloc(CHEMIN_MAX);
     strcpy(option_error, str);
 
-    // option_godunov :
+    // option_equation :
     fgets(line, CHEMIN_MAX, file);
 
     str = strtok(line, separators);
     str = strtok(NULL, separators);
-    char * option_godunov = malloc(CHEMIN_MAX);
-    strcpy(option_godunov, str);
+    char * option_equation = malloc(CHEMIN_MAX);
+    strcpy(option_equation, str);
 
     // xmin :
     fgets(line, CHEMIN_MAX, file);
@@ -446,12 +504,13 @@ void parameters_error_init_file(parameters_error *pparerr, char * name_input){
     // Initialisation of pparerr 
     
     parameters_error_init(pparerr, name_file,
+                    option_godunov, option_rusanov,
                     xmin, xmax, cfl, tmax,
                     m, len_liste_N, liste_N,
-                    option_error, option_godunov);
+                    option_error, option_equation);
 
     free(option_error);
-    free(option_godunov);
+    free(option_equation);
 }
 
 
@@ -509,10 +568,11 @@ void parameters_error_compute(parameters_error *pparerr){
     
     for (int i=0; i<pparerr->len_liste_N; i++){
 
-        parameters_init(&par, 1, 0,
+        parameters_init(&par,
+                        1, 0, pparerr->option_godunov, pparerr->option_rusanov,
                         pparerr->xmin, pparerr->xmax, pparerr->cfl, pparerr->tmax,
                         pparerr->m, pparerr->liste_N[i],
-                        pparerr->option_godunov);
+                        pparerr->option_equation);
 
         godunov_solve(&par, 0);
 

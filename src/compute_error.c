@@ -46,7 +46,7 @@ int main(int argc, char * argv[]){
 
     parameters_error parerr = {0};
     
-    parameters_error_init_file(&parerr, path_input);
+    parameters_error_init_file(&parerr, path_input, gflag, rflag);
     parameters_error_compute(&parerr);
     parameters_error_plot(&parerr, path_output);
     parameters_error_free(&parerr);
