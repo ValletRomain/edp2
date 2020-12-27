@@ -63,6 +63,23 @@ Avec $f$ le flux de Godunov :
 
 Nous avons une contraintes $2\lambda \Delta t < \Delta x$ avec $\lambda = max_i |f'(u_i^n)|$.
 
+\subsection{Schéma MUSCL}
+
+Le schéma de Rusanov est régit par la discrétisation :
+\[ \frac{u_i^{n+1}-u_i^n}{\Delta t} + \frac{f(u_{i+\frac{1}{2},-}^n,u_{i+\frac{1}{2},+}^n) - f(u_{i-\frac{1}{2},-}^n,u_{i-\frac{1}{2},+}^n)}{\Delta x} = 0 \]
+
+Avec :
+\begin{itemize}
+	\item $u_{i+\frac{1}{2},-}^n = u_i^n - \frac{\Delta x}{2} s_i^n$
+	\item $u_{i+\frac{1}{2},+}^n = u_i^n + \frac{\Delta x}{2} s_i^n$
+	\item $s_i^n = minmod(\alpha, \beta, \gamma) = \left\{ \begin{matrix} min(\alpha, \beta, \gamma) \text{ si } \alpha, \beta, \gamma < 0 \\ max(\alpha, \beta, \gamma) \text{ si } \alpha, \beta, \gamma > 0 \\ 0 \text{ sinon} \end{matrix} \right.$, avec $\left\{ \begin{matrix} \alpha = \frac{w_i^n - w_{i-1}^n}{\Delta x} \\ \beta = \frac{w_{i+1}^n - w_i^n}{\Delta x} \\ \gamma = \frac{w_{i+1}^n - w_{i-1}^n}{\Delta x} \end{matrix} \right.$
+\end{itemize}
+
+Et le flux $f$, reste le même que dans la méthode de Godunov :
+\[f(a,b) = f(R(a,b,0))\]
+
+Pour faciliter l'implémentation, nous introduisons $r_i^n = \Delta x \; s_i^n$ (les $\Delta x$ disparaissent du calcul du flux).
+
 \section{TP 1}
 
 Les codes de la résolution numérique du schéma de Godunov est placé dans un repository sous github ($https://github.com/ValletRomain/edp_tp1$).
