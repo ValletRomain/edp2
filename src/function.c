@@ -22,9 +22,9 @@
 // Input
 
 void parameters_init(parameters *ppar,
-                    int option_solexacte, int option_animation, int option_godunov, int option_rusanov,
+                    int option_solexacte, int option_animation, int option_godunov, int option_rusanov, int option_muscl,
                     double xmin, double xmax, double cfl, double tmax,
-                    int m, int N,
+                    int N,
                     char * option_equation){
     // Initialize the object pointed by ppar with the arguments
 
@@ -35,7 +35,6 @@ void parameters_init(parameters *ppar,
 
     ppar->xmin = xmin;
     ppar->xmax = xmax;
-    ppar->m = m;
     ppar->N = N;
     ppar->cfl = cfl;
     ppar->tmax = tmax;
@@ -45,36 +44,43 @@ void parameters_init(parameters *ppar,
 
     ppar->dx = (xmax - xmin) / N;
 
-    ppar->xi = malloc((N+2) * sizeof(double) * m);
+    ppar->xi = malloc((N+2) * sizeof(double));
 
     if (option_godunov){
-        ppar->un = malloc((N+2) * sizeof(double) * m);
-        ppar->unp1 = malloc((N+2) * sizeof(double) * m);
+        ppar->un = malloc((N+2) * sizeof(double));
+        ppar->unp1 = malloc((N+2) * sizeof(double));
     }
     if (option_rusanov){
-        ppar->vn = malloc((N+2) * sizeof(double) * m);
-        ppar->vnp1 = malloc((N+2) * sizeof(double) * m);
+        ppar->vn = malloc((N+2) * sizeof(double));
+        ppar->vnp1 = malloc((N+2) * sizeof(double));
+    }
+    if (option_muscl){
+        ppar->wn = malloc((N+2) * sizeof(double));
+        ppar->wnp1 = malloc((N+2) * sizeof(double));        
     }
     if (option_solexacte)
-        ppar->sol = malloc((N+2) * sizeof(double)*m);
+        ppar->sol = malloc((N+2) * sizeof(double));
 
     for (int i = 0; i < N + 2; i++){
 
         ppar->xi[i] = xmin + ppar->dx/2 + (i-1)*ppar->dx;
 
         if (option_godunov)
-            ppar->pboundary_spatial(ppar->xi[i], ppar->un + i*m);
+            ppar->un[i] = ppar->pboundary_spatial(ppar->xi[i]);
 
         if (option_rusanov)
-            ppar->pboundary_spatial(ppar->xi[i], ppar->vn + i*m);
+            ppar->vn[i] = ppar->pboundary_spatial(ppar->xi[i]);
+
+        if (option_muscl)
+            ppar->wn[i] = ppar->pboundary_spatial(ppar->xi[i]);
 
         if (option_solexacte)
-            ppar->psolexacte(ppar->xi[i], tmax, ppar->sol + i*m);
+            ppar->sol[i] = ppar->psolexacte(ppar->xi[i], tmax);
         
     }
 }
 
-void parameters_init_file(parameters *ppar, char * path_input, char * path_output, int option_animation, int option_godunov, int option_rusanov){
+void parameters_init_file(parameters *ppar, char * path_input, char * path_output, int option_animation, int option_godunov, int option_rusanov, int option_muscl){
     // Initialize the object pointed by ppar with the file of path name_input
 
     FILE * file = NULL;
@@ -141,13 +147,6 @@ void parameters_init_file(parameters *ppar, char * path_input, char * path_outpu
     str = strtok(NULL, separators);
     double cfl = atof(str);
 
-    // m :
-    fgets(line, CHEMIN_MAX, file);
-
-    str = strtok(line, separators);
-    str = strtok(NULL, separators);
-    int m = atoi(str);
-
     // N :
     fgets(line, CHEMIN_MAX, file);
 
@@ -182,53 +181,20 @@ void parameters_init_file(parameters *ppar, char * path_input, char * path_outpu
 
     // Initialization of other parameters
     parameters_init(ppar,
-                    option_solexacte, option_animation, option_godunov, option_rusanov,
+                    option_solexacte, option_animation, option_godunov, option_rusanov, option_muscl,
                     xmin, xmax, cfl, tmax,
-                    m, N, option_equation);
+                    N, option_equation);
 
     //--------------------------------------------------------
     // Creation of folder
 
-    // Creation of folder output
+    // Creation of folder output (before remove the folder is the folder exist)
+    if (access(ppar->complete_path_output, F_OK) == 0)
+        remove_directory(ppar->complete_path_output);
     mkdir(ppar->complete_path_output, ACCESSPERMS);
     
     // Creation of parameters
     par_create_parameters(ppar);
-
-    if (option_animation){
-        
-        if (option_godunov){
-            ppar->int_tnow_gd = 0;
-
-            // Creation of folder plots in output
-            char * path_plots_godunov = malloc(CHEMIN_MAX);
-            strcpy(path_plots_godunov, ppar->complete_path_output);
-            strcat(path_plots_godunov, "/plots_godunov");
-
-            mkdir(path_plots_godunov, ACCESSPERMS);
-
-            free(path_plots_godunov);
-
-            // Creation of plots0.dat
-            par_create_plots(ppar, 0);
-        }
-
-        if (option_rusanov){
-            ppar->int_tnow_ru = 0;
-
-            // Creation of folder plots in output
-            char * path_plots_rusanov = malloc(CHEMIN_MAX);
-            strcpy(path_plots_rusanov, ppar->complete_path_output);
-            strcat(path_plots_rusanov, "/plots_rusanov");
-
-            mkdir(path_plots_rusanov, ACCESSPERMS);
-
-            free(path_plots_rusanov);
-
-            // Creation of plots0.dat
-            par_create_plots(ppar, 1);
-        }
-    }
 
     printf("Creation of folfer -> %s\n", ppar->complete_path_output);
 
@@ -252,6 +218,7 @@ void parameters_plot(parameters *ppar){
     // Creation and execution of file plotcom.gnu
     par_create_execute_gnu(ppar);
     
+    /*
     // Creation of animation
     if (ppar->option_animation){
         if (ppar->option_godunov)
@@ -259,6 +226,7 @@ void parameters_plot(parameters *ppar){
         if (ppar->option_godunov)
             par_create_animation(ppar, 1);
     }
+    */
 
     printf("Fin Plot\n");
 }
@@ -271,9 +239,20 @@ void parameters_free(parameters *ppar){
     // Liberate tables the of ppar
 
     free(ppar->xi);
-    free(ppar->un);
-    free(ppar->unp1);
-    free(ppar->sol);
+    if (ppar->option_godunov){
+        free(ppar->un);
+        free(ppar->unp1);
+    }
+    if (ppar->option_rusanov){
+        free(ppar->vn);
+        free(ppar->vnp1);
+    }
+    if (ppar->option_muscl){
+        free(ppar->wn);
+        free(ppar->wnp1);
+    }
+    if (ppar->option_solexacte)
+        free(ppar->sol);
 
     printf("Fin Liberation parameters\n");
 }
@@ -285,8 +264,6 @@ void parameters_free(parameters *ppar){
 void godunov_solve(parameters *ppar, int option_visual){
     // Solve the problem of ppar
     // option_visual give visuality on terminal
-    
-    int m = ppar->m;
 
     if (option_visual){
         printf("Debut Resolution godunov\n");
@@ -300,21 +277,18 @@ void godunov_solve(parameters *ppar, int option_visual){
         // calcul de la vitesse max
         double vmax = 0;
         for (int i = 0; i < ppar->N + 2; i++){
-            double vloc = fabs(ppar->plambda_ma(ppar->un + m * i));
+            double vloc = fabs(ppar->plambda_ma(ppar->un[i]));
             vmax = vmax > vloc ? vmax : vloc;
         }
         
         ppar->dt = ppar->cfl * ppar->dx / vmax;
         for(int i = 1; i < ppar->N+1; i++){
-            double flux[m];
-            ppar->pfluxnum_gd(ppar->un + i*m, ppar->un + (i+1)*m, flux);
-            for(int iv = 0; iv < m; iv++){
-                ppar->unp1[i*m + iv] = ppar->un[i*m + iv] - ppar->dt/ppar->dx * flux[iv];
-            }
-            ppar->pfluxnum_gd(ppar->un + (i - 1) * m, ppar->un + i * m, flux);
-            for(int iv = 0; iv < m;iv++){
-                ppar->unp1[i * m + iv] += ppar->dt / ppar->dx * flux[iv];
-            }
+            double flux;
+            flux = ppar->pfluxnum_gd(ppar->un[i], ppar->un[i+1]);
+            ppar->unp1[i] = ppar->un[i] - ppar->dt/ppar->dx * flux;
+
+            flux = ppar->pfluxnum_gd(ppar->un[i-1], ppar->un[i]);
+            ppar->unp1[i] += ppar->dt / ppar->dx * flux;
         }
         // mise à jour
         tnow += ppar->dt;
@@ -324,15 +298,11 @@ void godunov_solve(parameters *ppar, int option_visual){
         }
         
         // conditions aux limites
-        ppar->pboundary_temporal_left(ppar->xmin, tnow, ppar->unp1);
-        ppar->pboundary_temporal_right(ppar->xmax, tnow, ppar->unp1 + (ppar->N+1)*m);
+        ppar->unp1[0] = ppar->pboundary_temporal_left(ppar->xmin, tnow);
+        ppar->unp1[ppar->N+1] = ppar->pboundary_temporal_right(ppar->xmax, tnow);
 
-        memcpy(ppar->un, ppar->unp1, (ppar->N + 2) * m *sizeof(double));
+        memcpy(ppar->un, ppar->unp1, (ppar->N + 2) *sizeof(double));
 
-        if (ppar->option_animation){
-            ppar->int_tnow_gd++;
-            par_create_plots(ppar, 0);
-        }
     }
     time_t end = time(NULL);
 
@@ -343,11 +313,9 @@ void godunov_solve(parameters *ppar, int option_visual){
     }
 }
 
-void rusanov_solve(parameters * ppar, int option_visual){
+void rusanov_solve(parameters *ppar, int option_visual){
     // Solve the problem of ppar
     // option_visual give visuality on terminal
-    
-    int m = ppar->m;
 
     if (option_visual){
         printf("Debut Resolution rusanov\n");
@@ -361,21 +329,18 @@ void rusanov_solve(parameters * ppar, int option_visual){
         // calcul de la vitesse max
         double vmax = 0;
         for (int i = 0; i < ppar->N + 2; i++){
-            double vloc = fabs(ppar->plambda_ma(ppar->vn + m * i));
+            double vloc = fabs(ppar->plambda_ma(ppar->vn[i]));
             vmax = vmax > vloc ? vmax : vloc;
         }
         
         ppar->dt = ppar->cfl * ppar->dx / vmax;
         for(int i = 1; i < ppar->N+1; i++){
-            double flux[m];
-            ppar->pfluxnum_ru(ppar->vn + i*m, ppar->vn + (i+1)*m, flux);
-            for(int iv = 0; iv < m; iv++){
-                ppar->vnp1[i*m + iv] = ppar->vn[i*m + iv] - ppar->dt/ppar->dx * flux[iv];
-            }
-            ppar->pfluxnum_ru(ppar->vn + (i - 1) * m, ppar->vn + i * m, flux);
-            for(int iv = 0; iv < m;iv++){
-                ppar->vnp1[i * m + iv] += ppar->dt / ppar->dx * flux[iv];
-            }
+            double flux;
+            flux = ppar->pfluxnum_ru(ppar->vn[i], ppar->vn[i+1]);
+            ppar->vnp1[i] = ppar->vn[i] - ppar->dt/ppar->dx * flux;
+            
+            flux = ppar->pfluxnum_ru(ppar->vn[i-1], ppar->vn[i]);
+            ppar->vnp1[i] += ppar->dt / ppar->dx * flux;
         }
         // mise à jour
         tnow += ppar->dt;
@@ -385,15 +350,11 @@ void rusanov_solve(parameters * ppar, int option_visual){
         }
         
         // conditions aux limites
-        ppar->pboundary_temporal_left(ppar->xmin, tnow, ppar->vnp1);
-        ppar->pboundary_temporal_right(ppar->xmax, tnow, ppar->vnp1 + (ppar->N+1)*m);
+        ppar->vnp1[0] = ppar->pboundary_temporal_left(ppar->xmin, tnow);
+        ppar->vnp1[ppar->N+1] = ppar->pboundary_temporal_right(ppar->xmax, tnow);
 
-        memcpy(ppar->vn, ppar->vnp1, (ppar->N + 2) * m *sizeof(double));
+        memcpy(ppar->vn, ppar->vnp1, (ppar->N + 2) * sizeof(double));
 
-        if (ppar->option_animation){
-            ppar->int_tnow_gd++;
-            par_create_plots(ppar, 0);
-        }
     }
     time_t end = time(NULL);
 
@@ -401,6 +362,63 @@ void rusanov_solve(parameters * ppar, int option_visual){
 
     if (option_visual)
         printf("Fin Resolution rusanov\n");
+}
+
+void muscl_solve(parameters *ppar, int option_visual){
+
+    // Solve the problem of ppar
+    // option_visual give visuality on terminal
+
+    if (option_visual){
+        printf("Debut Resolution godunov\n");
+    }
+
+    time_t begin = time(NULL);
+    
+    double tnow = 0;
+    while(tnow < ppar->tmax){
+        
+        // calcul de la vitesse max
+        double vmax = 0;
+        for (int i = 0; i < ppar->N + 2; i++){
+            double vloc = fabs(ppar->plambda_ma(ppar->wn[i]));
+            vmax = vmax > vloc ? vmax : vloc;
+        }
+        
+        ppar->dt = ppar->cfl * ppar->dx / vmax;
+
+        for(int i = 1; i < ppar->N+1; i++){
+            double flux;
+            flux = ppar->pfluxnum_gd(w_half_l(ppar->wn[i-1], ppar->wn[i], ppar->wn[i+1]),
+                                        w_half_p(ppar->wn[i], ppar->wn[i+1], ppar->wn[i+2]));
+            ppar->wnp1[i] = ppar->wn[i] - ppar->dt/ppar->dx * flux;
+            
+            flux = ppar->pfluxnum_gd(w_half_l(ppar->wn[i-2], ppar->wn[i-1], ppar->wn[i]),
+                                        w_half_p(ppar->wn[i-1], ppar->wn[i], ppar->wn[i+1]));
+            ppar->wnp1[i] += ppar->dt / ppar->dx * flux;
+        }
+        // mise à jour
+        tnow += ppar->dt;
+
+        if (option_visual){
+            printf("tnow = %f vmax = %f tmax = %f\n", tnow, vmax, ppar->tmax);
+        }
+        
+        // conditions aux limites
+        ppar->wnp1[0] = ppar->pboundary_temporal_left(ppar->xmin, tnow);
+        ppar->wnp1[ppar->N+1] = ppar->pboundary_temporal_right(ppar->xmax, tnow);
+
+        memcpy(ppar->wn, ppar->wnp1, (ppar->N + 2) * sizeof(double));
+
+    }
+    time_t end = time(NULL);
+
+    ppar->time_gd = (unsigned long) difftime(end, begin);
+
+    if (option_visual){
+        printf("Fin Resolution MUSCL\n");
+    }
+
 }
 
 //-----------------------------------------------------------------------------
@@ -411,19 +429,19 @@ void rusanov_solve(parameters * ppar, int option_visual){
 // Input
 
 void parameters_error_init(parameters_error *pparerr,
-                        int option_godunov, int option_rusanov,
+                        int option_godunov, int option_rusanov, int option_muscl,
                         double xmin, double xmax, double cfl, double tmax,
-                        int m, int len_liste_N, int * liste_N,
+                        int len_liste_N, int * liste_N,
                         char * option_error, char * option_equation){
     // Initialize the parameters_error with the arguments
 
     pparerr->option_godunov = option_godunov;
     pparerr->option_rusanov = option_rusanov;
+    pparerr->option_muscl = option_muscl;
 
     pparerr->xmin = xmin;
     pparerr->xmax = xmax;
     pparerr->cfl = cfl;
-    pparerr->m = m;
     pparerr->len_liste_N = len_liste_N;
     pparerr->liste_N = liste_N;
     pparerr->tmax = tmax;
@@ -445,12 +463,17 @@ void parameters_error_init(parameters_error *pparerr,
         pparerr->liste_time_ru = malloc(len_liste_N * sizeof(unsigned long));
     }
 
+    if (option_muscl){
+        pparerr->liste_error_muscl = malloc(len_liste_N * sizeof(double));
+        pparerr->liste_time_muscl = malloc(len_liste_N * sizeof(unsigned long));
+    }
+
     printf("Fin Initialisation\n");
 }
 
 void parameters_error_init_file(parameters_error *pparerr,
                                 char * path_input, char * path_output,
-                                int option_godunov, int option_rusanov){
+                                int option_godunov, int option_rusanov, int option_muscl){
     // Initialize of parameters_error pparerr with file of path path_input
 
     FILE * file = NULL;
@@ -518,13 +541,6 @@ void parameters_error_init_file(parameters_error *pparerr,
     str = strtok(NULL, separators);
     double cfl = atof(str);
 
-    // m :
-    fgets(line, CHEMIN_MAX, file);
-
-    str = strtok(line, separators);
-    str = strtok(NULL, separators);
-    int m = atoi(str);
-
     // len_liste_N :
     fgets(line, CHEMIN_MAX, file);
 
@@ -569,15 +585,17 @@ void parameters_error_init_file(parameters_error *pparerr,
 
     // Initialization of other parameters
     parameters_error_init(pparerr,
-                            option_godunov, option_rusanov,
+                            option_godunov, option_rusanov, option_muscl,
                             xmin, xmax, cfl, tmax,
-                            m, len_liste_N, liste_N,
+                            len_liste_N, liste_N,
                             option_error, option_equation);
 
     //--------------------------------------------------------
     // Creation of folder
 
-    // Creation of folder output
+    // Creation of folder output (before remove the folder is the folder exist)
+    if (access(pparerr->complete_path_output, F_OK) == 0)
+        remove_directory(pparerr->complete_path_output);
     mkdir(pparerr->complete_path_output, ACCESSPERMS);
     
     // Creation of parameters
@@ -631,23 +649,30 @@ void parameters_error_compute(parameters_error *pparerr){
     for (int i=0; i<pparerr->len_liste_N; i++){
 
         parameters_init(&par,
-                        1, 0, pparerr->option_godunov, pparerr->option_rusanov,
+                        1, 0, pparerr->option_godunov, pparerr->option_rusanov, pparerr->option_muscl,
                         pparerr->xmin, pparerr->xmax, pparerr->cfl, pparerr->tmax,
-                        pparerr->m, pparerr->liste_N[i],
+                        pparerr->liste_N[i],
                         pparerr->option_equation);
 
         if (pparerr->option_godunov){
             godunov_solve(&par, 0);
-            pparerr->liste_error_gd[i] = pparerr->perror((par.N+2)*par.m, par.un, par.sol);
+            pparerr->liste_error_gd[i] = pparerr->perror((par.N+2), par.un, par.sol);
             pparerr->liste_time_gd[i] = par.time_gd;
             printf("Compute error godunov for N=%d error=%f time=%ld s\n", par.N, pparerr->liste_error_gd[i], pparerr->liste_time_gd[i]);   
         }
         
         if (pparerr->option_rusanov){
             rusanov_solve(&par, 0);
-            pparerr->liste_error_ru[i] = pparerr->perror((par.N+2)*par.m, par.vn, par.sol);
+            pparerr->liste_error_ru[i] = pparerr->perror((par.N+2), par.vn, par.sol);
             pparerr->liste_time_ru[i] = par.time_ru;
             printf("Compute error rusanov for N=%d error=%f time=%ld s\n", par.N, pparerr->liste_error_ru[i], pparerr->liste_time_ru[i]);   
+        } 
+
+        if (pparerr->option_muscl){
+            muscl_solve(&par, 0);
+            pparerr->liste_error_muscl[i] = pparerr->perror((par.N+2), par.vn, par.sol);
+            pparerr->liste_time_muscl[i] = par.time_ru;
+            printf("Compute error MUSCL for N=%d error=%f time=%ld s\n", par.N, pparerr->liste_error_muscl[i], pparerr->liste_time_muscl[i]);   
         } 
     }
 

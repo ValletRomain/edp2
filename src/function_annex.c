@@ -18,17 +18,6 @@
 // Manage of parameters
 //-----------------------------------------------------------------------------
 
-char * give_schema(int type_schema){
-
-    if (type_schema == 0)
-        return "godunov";
-    else if (type_schema == 1)
-        return "rusanov";
-    else
-        raler(0, "type_schema=%d n'existe pas", type_schema);
-
-}
-
 void give_parameters(parameters * ppar, char * option){
     // Distrib the function pointers for parameters ppar depending on option
     // If option do not exist, a alert message is send
@@ -122,16 +111,17 @@ void par_create_parameters(parameters * ppar){
     fprintf(fic, "Parametres %s :\n\n", ppar->name_file);
     fprintf(fic, "option_solexacte %d\n", ppar->option_solexacte);
     fprintf(fic, "N %d\n", ppar->N);
-    fprintf(fic, "m %d\n", ppar->m);
     fprintf(fic, "dx %f\n", ppar->dx);
     fprintf(fic, "tmax %f\n", ppar->tmax);
     fprintf(fic, "xmin %f\n", ppar->xmin);
     fprintf(fic, "xmax %f\n", ppar->xmax);
     fprintf(fic, "cfl %f\n", ppar->cfl);
     if (ppar->option_godunov)
-        fprintf(fic, "time %ld\n", ppar->time_gd);
+        fprintf(fic, "time godunov %ld\n", ppar->time_gd);
     if (ppar->option_rusanov)
-        fprintf(fic, "time %ld\n", ppar->time_gd);
+        fprintf(fic, "time rusanov %ld\n", ppar->time_ru);
+    if (ppar->option_muscl)
+        fprintf(fic, "time MUSCL %ld\n", ppar->time_muscl);
     
     fclose(fic);
     free(name_file);
@@ -152,6 +142,8 @@ void par_create_plot(parameters * ppar){
         fprintf(fic, "gd ");
     if (ppar->option_rusanov)
         fprintf(fic, "ru ");
+    if (ppar->option_muscl)
+        fprintf(fic, "muscl ");
     if (ppar->option_solexacte)
         fprintf(fic, "sol ");
     fprintf(fic, "\n");
@@ -162,6 +154,8 @@ void par_create_plot(parameters * ppar){
             fprintf(fic, "%f ", ppar->un[i]);
         if (ppar->option_rusanov)
             fprintf(fic, " %f", ppar->vn[i]);
+        if (ppar->option_muscl)
+            fprintf(fic, " %f", ppar->wn[i]);
         if (ppar->option_solexacte)
             fprintf(fic, " %f", ppar->sol[i]);
         fprintf(fic, "\n");
@@ -169,37 +163,6 @@ void par_create_plot(parameters * ppar){
 
     fclose(fic);
     free(name_file);
-}
-
-void par_create_plots(parameters * ppar, int type_schema){
-    // Create the ploti.dat with i=ppar->int_tnow
-    // type_schema=0 -> godunov
-    // type_schema=1 -> rusanov
-
-    char * name_schema = give_schema(type_schema);
-
-    char * name_plot = malloc(CHEMIN_MAX);
-    strcpy(name_plot, ppar->complete_path_output);
-    char * inter = malloc(CHEMIN_MAX);
-    if (type_schema == 0)
-        sprintf(inter, "/plots_%s/plot%d.dat", name_schema, ppar->int_tnow_gd);
-    else if (type_schema == 1)
-        sprintf(inter, "/plots_%s/plot%d.dat", name_schema, ppar->int_tnow_ru);
-    strcat(name_plot, inter);
-
-    free(inter);
-
-    FILE * fic = fopen(name_plot, "w");
-
-    for (int i=0; i<ppar->N+2; i++){
-        if (type_schema == 0)
-            fprintf(fic, "%f %f \n", ppar->xi[i], ppar->un[i]);
-        else if (type_schema == 1)
-            fprintf(fic, "%f %f \n", ppar->xi[i], ppar->vn[i]);
-    }
-
-    fclose(fic);
-    free(name_plot);
 }
 
 void par_create_execute_gnu(parameters * ppar){
@@ -226,6 +189,7 @@ void par_create_execute_gnu(parameters * ppar){
     fprintf(fic, "set yrange [STATS_min_y - %f * (STATS_max_y-STATS_min_y): STATS_max_y + %f * (STATS_max_y-STATS_min_y)]\n\n", BORDER, BORDER);
 
     fprintf(fic, "plot ");
+    /*
     if (ppar->option_godunov)
         fprintf(fic, "\'%s/plot.dat\' using 1:2 title \"godunov\" w lp pt 0", ppar->complete_path_output);
     if (ppar->option_rusanov && !(ppar->option_godunov))
@@ -235,6 +199,22 @@ void par_create_execute_gnu(parameters * ppar){
     if (ppar->option_solexacte)
         fprintf(fic, ", \'%s/plot.dat\' using 1:%d title \"exacte\" w lp pt 0",
             ppar->complete_path_output, ppar->option_godunov + ppar->option_rusanov + 2);
+    */
+
+    if (ppar->option_godunov)
+        fprintf(fic, "\'%s/plot.dat\' using 1:2 title \"godunov\" w lp pt 0", ppar->complete_path_output);
+    if (ppar->option_rusanov)
+        fprintf(fic, "\'%s/plot.dat\' using 1:%d title \"rusanov\" w lp pt 0",
+                    ppar->complete_path_output,
+                    ppar->option_godunov + 2);
+    if (ppar->option_muscl)
+        fprintf(fic, "\'%s/plot.dat\' using 1:%d title \"rusanov\" w lp pt 0",
+                    ppar->complete_path_output,
+                    ppar->option_godunov + ppar->option_rusanov + 2);
+    if (ppar->option_muscl)
+        fprintf(fic, "\'%s/plot.dat\' using 1:%d title \"exacte\" w lp pt 0",
+                    ppar->complete_path_output,
+                    ppar->option_godunov + ppar->option_rusanov + ppar->option_muscl + 2);
     
     fclose(fic);
     free(name_file);
@@ -250,91 +230,6 @@ void par_create_execute_gnu(parameters * ppar){
 
     free(name_command);
 }
-
-void par_create_animation(parameters * ppar, int type_schema){
-    // Create and execute the gnuplot plotcom.gnu for parameters object ppar
-
-    char * inter;
-    char * name_schema = give_schema(type_schema);
-
-    // Create folder animation_godunov/rusanov
-    char * path_animation = malloc(CHEMIN_MAX);
-    strcpy(path_animation, ppar->complete_path_output);
-    inter = malloc(CHEMIN_MAX);
-    sprintf(inter, "/animation_%s", name_schema);
-    strcat(path_animation, inter);
-
-    mkdir(path_animation, ACCESSPERMS);
-
-    free(path_animation);
-    free(inter);
-    
-    // Create of plotcom.gnu
-    char * name_file = malloc(CHEMIN_MAX);
-    strcpy(name_file, ppar->complete_path_output);
-    inter = malloc(CHEMIN_MAX);
-    sprintf(inter, "/animcom_%s.gnu", name_schema);
-    strcat(name_file, inter);
-
-    FILE *fic = fopen(name_file, "w");
-
-    fprintf(fic, "set terminal pngcairo\n\n");
-    fprintf(fic, "stats \'%s/plots_%s/plot1.dat\' using 1:2 nooutput\n\n", ppar->complete_path_output, name_schema);    // <<<---- ERROR HERE
-    fprintf(fic, "Xmin = STATS_min_x\n");
-    fprintf(fic, "Xmax = STATS_max_x\n");
-    fprintf(fic, "Ymin = STATS_min_y - %f * (STATS_max_y - STATS_min_y)\n", BORDER);
-    fprintf(fic, "Ymax = STATS_max_y + %f * (STATS_max_y - STATS_min_y)\n\n", BORDER);
-    
-    // Begin of For
-    if (type_schema==0)
-        fprintf(fic, "do for [i=0:%d] {\n", ppar->int_tnow_gd);
-    if (type_schema==1)
-        fprintf(fic, "do for [i=0:%d] {\n", ppar->int_tnow_ru);
-
-    fprintf(fic, "\tset output sprintf(\'%s/animation_%s/graphe%%d.png\',i) \n\n", ppar->complete_path_output, name_schema);
-    fprintf(fic, "\tset title sprintf(\"Animation de %s int_tnow=%%d\",i) \n", ppar->option_equation);
-    fprintf(fic, "\tset key off\n\n");
-    fprintf(fic, "\tset xlabel \"x\" \n");
-    fprintf(fic, "\tset ylabel \"u\" \n\n");
-    fprintf(fic, "\tset xrange [Xmin:Xmax] \n");
-    fprintf(fic, "\tset yrange [Ymin:Ymax] \n\n");
-    fprintf(fic, "\tplot sprintf(\'%s/plots_%s/plot%%d.dat\', i) using 1:2 w lp pt 0 \n", ppar->complete_path_output, name_schema);
-
-    fprintf(fic, "}");
-    // End of For
-    
-    fclose(fic);
-    free(name_file);
-    free(inter);
-    
-    // Execution de la commande gnuplot
-    char * name_command = malloc(CHEMIN_MAX);
-    strcpy(name_command, "gnuplot ");
-    strcat(name_command, ppar->complete_path_output);
-    inter = malloc(CHEMIN_MAX);
-    sprintf(inter, "/animcom_%s.gnu", name_schema);
-    strcat(name_command, inter);
-
-    int status = system(name_command);
-    assert(status == EXIT_SUCCESS);
-    
-    free(name_command);
-    
-    // Creation of video
-    name_command = malloc(CHEMIN_MAX);
-    sprintf(name_command,
-            "mencoder mf://%s/animation_%s/*.png -mf w=800:h=600:fps=25:type=png -ovc lavc -lavcopts vcodec=mpeg4 -oac copy -o %s/animation_%s.avi",
-            ppar->complete_path_output, name_schema, ppar->complete_path_output, name_schema);
-
-    
-    status = system(name_command);
-    assert(status == EXIT_SUCCESS);
-    
-    free(name_command);
-
-    printf("Fin create of animation_%s\n", name_schema);
-}
-
 
 //-----------------------------------------------------------------------------
 // Fonction pour créer les fichiers outputs parameters_error
@@ -355,7 +250,6 @@ void parerr_create_parameters(parameters_error * pparerr){
         fprintf(fic, "%d ", pparerr->liste_N[i]);
     }
     fprintf(fic, "\n");
-    fprintf(fic, "m %d\n", pparerr->m);
     fprintf(fic, "xmin %f\n", pparerr->xmin);
     fprintf(fic, "xmax %f\n", pparerr->xmax);
     fprintf(fic, "cfl %f\n", pparerr->cfl);

@@ -9,11 +9,11 @@
 
 int main(int argc, char * argv[]){
 
-    int c, errflag=0, gflag=0, rflag=0;
+    int c, errflag=0, gflag=0, rflag=0, mflag=0;
     extern char *optarg;
     extern int optind;
 
-    while ( (c=getopt(argc, argv, "agr"))!=-1 ){
+    while ( (c=getopt(argc, argv, "grm"))!=-1 ){
         switch (c) {        
         case 'g':
             gflag++;
@@ -21,6 +21,10 @@ int main(int argc, char * argv[]){
 
         case 'r':
             rflag++;
+            break;
+
+        case 'm':
+            mflag++;
             break;
 
         default:
@@ -46,7 +50,7 @@ int main(int argc, char * argv[]){
 
     parameters_error parerr = {0};
     
-    parameters_error_init_file(&parerr, path_input, path_output, gflag, rflag);
+    parameters_error_init_file(&parerr, path_input, path_output, gflag, rflag, mflag);
     parameters_error_compute(&parerr);
     parameters_error_plot(&parerr);
     parameters_error_free(&parerr);

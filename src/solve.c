@@ -1,5 +1,8 @@
 /* Application godunov : resolve the schema of godunov
-usage : solve {g|r|gr} [v] path_input path_output
+usage : solve {g|r|m} [v] path_input path_output
+- g : godunov
+- r : rusanov
+- m : MUSCL
 */
 
 #include <stdlib.h>
@@ -13,16 +16,18 @@ usage : solve {g|r|gr} [v] path_input path_output
 
 int main(int argc, char * argv[]){
 
-    int c, errflag=0, aflag=0, gflag=0, rflag=0;
+    int c, errflag=0, aflag=0, gflag=0, rflag=0, mflag=0;
     extern char *optarg;
     extern int optind;
 
-    while ( (c=getopt(argc, argv, "agr"))!=-1 ){
+    aflag = 0;
+
+    while ( (c=getopt(argc, argv, "grm"))!=-1 ){
         switch (c)
         {
-        case 'a':
+/*      case 'a':
             aflag++;
-            break;
+            break;*/
         
         case 'g':
             gflag++;
@@ -30,6 +35,10 @@ int main(int argc, char * argv[]){
 
         case 'r':
             rflag++;
+            break;
+
+        case 'm':
+            mflag++;
             break;
 
         default:
@@ -58,12 +67,14 @@ int main(int argc, char * argv[]){
     
     parameters_init_file(&par,
                         path_input, path_output,
-                        aflag, gflag, rflag);
+                        aflag, gflag, rflag, mflag);
 
     if (gflag)
         godunov_solve(&par, 1);
     if (rflag)
         rusanov_solve(&par, 1);
+    if (mflag)
+        muscl_solve(&par, 1);
 
     parameters_plot(&par);
     //parameters_free(&par);

@@ -14,36 +14,38 @@ typedef struct parameters{
     int option_animation;
     int option_godunov;
     int option_rusanov;
+    int option_muscl;
     char * option_equation; // equation is resolve (burgers, transport...)
 
     // Parametre du probleme
-    int m, N; // m dimension of problem, N number of space point
+    int N; // m dimension of problem, N number of space point
     double xmin, xmax;
     double cfl;
     double dt, dx;
     double tmax;
 
     // Parameters of equation
-    double (*plambda_ma)(double*);
+    double (*plambda_ma)(double);
 
     // Flux for godunov
-    void (*pfluxnum_gd)(double*, double*, double*);
+    double (*pfluxnum_gd)(double, double);
 
     // Flux for rusanov
-    void (*pfluxnum_ru)(double*, double*, double*);
+    double (*pfluxnum_ru)(double, double);
 
     // Border condition
-    void (*pboundary_spatial)(double, double*);
-    void (*pboundary_temporal_left)(double, double, double*);
-    void (*pboundary_temporal_right)(double, double, double*);
+    double (*pboundary_spatial)(double);
+    double (*pboundary_temporal_left)(double, double);
+    double (*pboundary_temporal_right)(double, double);
 
     // Solution exacte
-    void (*psolexacte)(double, double, double*);
+    double (*psolexacte)(double, double);
 
 
     // Resultats du probleme
     unsigned long time_gd;
     unsigned long time_ru;
+    unsigned long time_muscl;
     
     double *xi; // centre des milieux des cellules
     
@@ -54,7 +56,13 @@ typedef struct parameters{
     // Rusanov
     double *vn; // solution a l'instant n
     double *vnp1; // solution a l'instant n+1
-    double *sol; // solution exact
+
+    // MUSCL
+    double *wn;
+    double *wnp1;
+
+    // solution exact
+    double *sol;
 
     int int_tnow_gd;
     int int_tnow_ru;
@@ -73,9 +81,10 @@ typedef struct parameters_error{
     char * option_equation;
     int option_godunov;
     int option_rusanov;
+    int option_muscl;
 
     // Parametre du probleme
-    int m; // nombre de variables conservatives, nombre de cellules
+    //int m; // nombre de variables conservatives, nombre de cellules
     double dt, dx; // pas de temps, pas d'espace
     double xmin, xmax; // bornes de l'intervalles
     double cfl; // vmax : dt/dx
@@ -92,17 +101,20 @@ typedef struct parameters_error{
     double * liste_error_ru;
     unsigned long * liste_time_ru;
 
+    double *liste_error_muscl;
+    unsigned long *liste_time_muscl;
+
 } parameters_error;
 
 void parameters_init(parameters *par,
-                    int option_solexacte, int option_animation, int option_godunov, int option_rusanov,
+                    int option_solexacte, int option_animation, int option_godunov, int option_rusanov, int option_muscl,
                     double xmin, double xmax, double cfl, double tmax,
-                    int m, int N,
+                    int N,
                     char * option_equation);
 
 void parameters_init_file(parameters *par,
                     char * path_input, char * path_output,
-                    int option_animation, int option_godunov, int option_rusanov);
+                    int option_animation, int option_godunov, int option_rusanov, int option_muscl);
 
 void parameters_plot(parameters *par);
 
@@ -112,15 +124,17 @@ void godunov_solve(parameters *par, int option_visual);
 
 void rusanov_solve(parameters *par, int option_visual);
 
+void muscl_solve(parameters *par, int option_visual);
+
 void parameters_error_init(parameters_error *pperr,
-                        int option_godunov, int option_rusanov,
+                        int option_godunov, int option_rusanov, int option_muscl,
                         double xmin, double xmax, double cfl, double tmax,
-                        int m, int len_liste_N, int * liste_N,
+                        int len_liste_N, int * liste_N,
                         char * option_error, char * option_equation);
 
 void parameters_error_init_file(parameters_error *pperr,
                         char * path_input, char * path_output,
-                        int option_godunov, int option_rusanov);
+                        int option_godunov, int option_rusanov, int option_muscl);
 
 void parameters_error_plot(parameters_error *pperr);
 
