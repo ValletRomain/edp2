@@ -664,8 +664,8 @@ void parameters_error_compute(parameters_error *pparerr){
 
         if (pparerr->option_muscl){
             muscl_solve(&par, 0);
-            pparerr->liste_error_muscl[i] = pparerr->perror((par.N+2), par.vn, par.sol);
-            pparerr->liste_time_muscl[i] = par.time_ru;
+            pparerr->liste_error_muscl[i] = pparerr->perror((par.N+2), par.wn, par.sol);
+            pparerr->liste_time_muscl[i] = par.time_muscl;
             printf("Compute error MUSCL for N=%d error=%f time=%ld s\n", par.N, pparerr->liste_error_muscl[i], pparerr->liste_time_muscl[i]);   
         } 
     }

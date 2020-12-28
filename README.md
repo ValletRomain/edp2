@@ -11,6 +11,8 @@ avec les méthode de Godunov, Rusanov et MUSCL. Elle contient les codes source d
 
 Un petit fichier bash est présent à la racine qui éxécute les différentes étapes suivantes (compilation puis éxécution de certain problèmes). Aprèes l'éxécution de ce fichier,  les résultats seront présents dans le dossier output.
 
+Attention, son éxécution peut prendre un peu de temps (une dizaine de minute sur mon ordinateur).
+
 ## Architecture du projet
 
 Le projet est composé par :
