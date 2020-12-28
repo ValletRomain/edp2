@@ -83,10 +83,6 @@ int main(int argc, char * argv[]){
     parameters_error parerr = {0};
 
     parameters_error_init_file(&parerr, path_input, path_output, gflag, rflag, mflag);
-
-    printf("len_N={%d}, g=%d, r=%d, m=%d\n", parerr.len_liste_N, parerr.option_godunov,
-                    parerr.option_rusanov, parerr.option_muscl);
-
     parameters_error_compute(&parerr);
     parameters_error_plot(&parerr);
     parameters_error_free(&parerr);
