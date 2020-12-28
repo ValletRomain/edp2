@@ -107,14 +107,14 @@ typedef struct parameters_error{
 } parameters_error;
 
 void parameters_init(parameters *par,
-                    int option_solexacte, int option_animation, int option_godunov, int option_rusanov, int option_muscl,
+                    int option_solexacte, int option_godunov, int option_rusanov, int option_muscl,
                     double xmin, double xmax, double cfl, double tmax,
                     int N,
                     char * option_equation);
 
 void parameters_init_file(parameters *par,
                     char * path_input, char * path_output,
-                    int option_animation, int option_godunov, int option_rusanov, int option_muscl);
+                    int option_godunov, int option_rusanov, int option_muscl);
 
 void parameters_plot(parameters *par);
 

@@ -22,16 +22,16 @@
 // Input
 
 void parameters_init(parameters *ppar,
-                    int option_solexacte, int option_animation, int option_godunov, int option_rusanov, int option_muscl,
+                    int option_solexacte, int option_godunov, int option_rusanov, int option_muscl,
                     double xmin, double xmax, double cfl, double tmax,
                     int N,
                     char * option_equation){
     // Initialize the object pointed by ppar with the arguments
 
     ppar->option_solexacte = option_solexacte;
-    ppar->option_animation = option_animation;
     ppar->option_godunov = option_godunov;
     ppar->option_rusanov = option_rusanov;
+    ppar->option_muscl = option_muscl;
 
     ppar->xmin = xmin;
     ppar->xmax = xmax;
@@ -80,7 +80,7 @@ void parameters_init(parameters *ppar,
     }
 }
 
-void parameters_init_file(parameters *ppar, char * path_input, char * path_output, int option_animation, int option_godunov, int option_rusanov, int option_muscl){
+void parameters_init_file(parameters *ppar, char * path_input, char * path_output, int option_godunov, int option_rusanov, int option_muscl){
     // Initialize the object pointed by ppar with the file of path name_input
 
     FILE * file = NULL;
@@ -181,7 +181,7 @@ void parameters_init_file(parameters *ppar, char * path_input, char * path_outpu
 
     // Initialization of other parameters
     parameters_init(ppar,
-                    option_solexacte, option_animation, option_godunov, option_rusanov, option_muscl,
+                    option_solexacte, option_godunov, option_rusanov, option_muscl,
                     xmin, xmax, cfl, tmax,
                     N, option_equation);
 
@@ -365,12 +365,12 @@ void rusanov_solve(parameters *ppar, int option_visual){
 }
 
 void muscl_solve(parameters *ppar, int option_visual){
-
+    
     // Solve the problem of ppar
     // option_visual give visuality on terminal
 
     if (option_visual){
-        printf("Debut Resolution godunov\n");
+        printf("Debut Resolution MUSCL\n");
     }
 
     time_t begin = time(NULL);
@@ -413,13 +413,14 @@ void muscl_solve(parameters *ppar, int option_visual){
     }
     time_t end = time(NULL);
 
-    ppar->time_gd = (unsigned long) difftime(end, begin);
+    ppar->time_muscl = (unsigned long) difftime(end, begin);
 
     if (option_visual){
         printf("Fin Resolution MUSCL\n");
     }
 
 }
+
 
 //-----------------------------------------------------------------------------
 // Calcul des erreurs
@@ -649,7 +650,7 @@ void parameters_error_compute(parameters_error *pparerr){
     for (int i=0; i<pparerr->len_liste_N; i++){
 
         parameters_init(&par,
-                        1, 0, pparerr->option_godunov, pparerr->option_rusanov, pparerr->option_muscl,
+                        1, pparerr->option_godunov, pparerr->option_rusanov, pparerr->option_muscl,
                         pparerr->xmin, pparerr->xmax, pparerr->cfl, pparerr->tmax,
                         pparerr->liste_N[i],
                         pparerr->option_equation);

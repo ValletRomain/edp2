@@ -153,11 +153,11 @@ void par_create_plot(parameters * ppar){
         if (ppar->option_godunov)
             fprintf(fic, "%f ", ppar->un[i]);
         if (ppar->option_rusanov)
-            fprintf(fic, " %f", ppar->vn[i]);
+            fprintf(fic, "%f ", ppar->vn[i]);
         if (ppar->option_muscl)
-            fprintf(fic, " %f", ppar->wn[i]);
+            fprintf(fic, "%f ", ppar->wn[i]);
         if (ppar->option_solexacte)
-            fprintf(fic, " %f", ppar->sol[i]);
+            fprintf(fic, "%f ", ppar->sol[i]);
         fprintf(fic, "\n");
     }
 
@@ -189,33 +189,38 @@ void par_create_execute_gnu(parameters * ppar){
     fprintf(fic, "set yrange [STATS_min_y - %f * (STATS_max_y-STATS_min_y): STATS_max_y + %f * (STATS_max_y-STATS_min_y)]\n\n", BORDER, BORDER);
 
     fprintf(fic, "plot ");
-    /*
-    if (ppar->option_godunov)
-        fprintf(fic, "\'%s/plot.dat\' using 1:2 title \"godunov\" w lp pt 0", ppar->complete_path_output);
-    if (ppar->option_rusanov && !(ppar->option_godunov))
-        fprintf(fic, "\'%s/plot.dat\' using 1:2 title \"rusanov\" w lp pt 0", ppar->complete_path_output);
-    if (ppar->option_rusanov && ppar->option_godunov)
-        fprintf(fic, ", \'%s/plot.dat\' using 1:3 title \"rusanov\" w lp pt 0", ppar->complete_path_output);
-    if (ppar->option_solexacte)
-        fprintf(fic, ", \'%s/plot.dat\' using 1:%d title \"exacte\" w lp pt 0",
-            ppar->complete_path_output, ppar->option_godunov + ppar->option_rusanov + 2);
-    */
 
-    if (ppar->option_godunov)
-        fprintf(fic, "\'%s/plot.dat\' using 1:2 title \"godunov\" w lp pt 0", ppar->complete_path_output);
-    if (ppar->option_rusanov)
-        fprintf(fic, "\'%s/plot.dat\' using 1:%d title \"rusanov\" w lp pt 0",
+    if (ppar->option_godunov){
+        fprintf(fic, "\'%s/plot.dat\' using 1:2 title \"godunov\" w lp pt 0 lc rgb \"blue\"", ppar->complete_path_output);
+        
+        if ((ppar->option_rusanov) || (ppar->option_muscl) || (ppar->option_solexacte))
+            fprintf(fic, ", ");
+    }
+
+    if (ppar->option_rusanov){
+        fprintf(fic, "\'%s/plot.dat\' using 1:%d title \"rusanov\" w lp pt 0 lc rgb \"red\"",
                     ppar->complete_path_output,
                     ppar->option_godunov + 2);
-    if (ppar->option_muscl)
-        fprintf(fic, "\'%s/plot.dat\' using 1:%d title \"rusanov\" w lp pt 0",
+    
+        if ((ppar->option_muscl) || (ppar->option_solexacte))
+            fprintf(fic, ", ");
+    }
+
+    if (ppar->option_muscl){
+        fprintf(fic, "\'%s/plot.dat\' using 1:%d title \"MUSCL\" w lp pt 0 lc rgb \"green\"",
                     ppar->complete_path_output,
                     ppar->option_godunov + ppar->option_rusanov + 2);
-    if (ppar->option_muscl)
-        fprintf(fic, "\'%s/plot.dat\' using 1:%d title \"exacte\" w lp pt 0",
+    
+        if (ppar->option_solexacte)
+            fprintf(fic, ", ");
+    }
+
+    if (ppar->option_solexacte){
+        fprintf(fic, "\'%s/plot.dat\' using 1:%d title \"exacte\" w lp pt 0 lc rgb \"black\"",
                     ppar->complete_path_output,
                     ppar->option_godunov + ppar->option_rusanov + ppar->option_muscl + 2);
-    
+    }
+
     fclose(fic);
     free(name_file);
 
@@ -267,6 +272,19 @@ void parerr_create_plot(parameters_error * pparerr){
 
     FILE *fic = fopen(name_output, "w");
 
+    fprintf(fic, "N ");
+
+    if (pparerr->option_godunov)
+        fprintf(fic, "err_g time_g ");
+        
+    if (pparerr->option_rusanov)
+        fprintf(fic, "err_r time_r ");
+
+    if (pparerr->option_muscl)
+        fprintf(fic, "err_m time_m" );
+
+    fprintf(fic, "\n");
+
     for (int i = 0; i < pparerr->len_liste_N; i++){
         fprintf(fic, "%d ", pparerr->liste_N[i]);
         if (pparerr->option_godunov)
@@ -274,6 +292,10 @@ void parerr_create_plot(parameters_error * pparerr){
         
         if (pparerr->option_rusanov)
             fprintf(fic, "%f %ld ", pparerr->liste_error_ru[i], pparerr->liste_time_ru[i]);
+        
+        if (pparerr->option_muscl)
+            fprintf(fic, "%f %ld ", pparerr->liste_error_muscl[i], pparerr->liste_time_muscl[i]);
+        
         fprintf(fic, "\n");
     }
 
@@ -301,12 +323,27 @@ void parerr_create_execute_gnu(parameters_error * pparerr){
     fprintf(fic, "stats \'%s/plot.dat\' using 1:2 nooutput\n", pparerr->complete_path_output);
     fprintf(fic, "set xrange [STATS_min_x:STATS_max_x]\n");
     fprintf(fic, "set yrange [0: STATS_max_y + %f * (STATS_max_y-STATS_min_y)]\n\n", BORDER);
-    if (pparerr->option_godunov)
-        fprintf(fic, "plot \'%s/plot.dat\' using 1:2 title \"error\" w lp", pparerr->complete_path_output);
-    if (pparerr->option_rusanov && !(pparerr->option_godunov))
-        fprintf(fic, "plot \'%s/plot.dat\' using 1:2 title \"error\" w lp", pparerr->complete_path_output);
-    if (pparerr->option_rusanov && pparerr->option_godunov)
-        fprintf(fic, ", \'%s/plot.dat\' using 1:4 title \"error\" w lp", pparerr->complete_path_output);
+
+    fprintf(fic, "plot ");
+    if (pparerr->option_godunov){
+        fprintf(fic, "\'%s/plot.dat\' using 1:2 title \"godunov\" w lp lc rgb \"blue\"", pparerr->complete_path_output);
+
+        if ((pparerr->option_rusanov) || (pparerr->option_muscl))
+            fprintf(fic, ", ");
+    }
+    if (pparerr->option_rusanov){
+        fprintf(fic, "\'%s/plot.dat\' using 1:%d title \"rusanov\" w lp lc rgb \"red\"",
+                pparerr->complete_path_output,
+                2 + 2 * pparerr->option_godunov);
+        
+        if (pparerr->option_muscl)
+            fprintf(fic, ", ");
+    }
+    if (pparerr->option_muscl)
+        fprintf(fic, "\'%s/plot.dat\' using 1:%d title \"MUSCL\" w lp lc rgb \"green\"",
+                pparerr->complete_path_output,
+                2 + 2 * (pparerr->option_godunov + pparerr->option_rusanov));
+    
     fprintf(fic, "\n\n");
 
     fprintf(fic, "reset\n\n");
@@ -321,13 +358,26 @@ void parerr_create_execute_gnu(parameters_error * pparerr){
     fprintf(fic, "stats \'%s/plot.dat\' using 1:3 nooutput\n", pparerr->complete_path_output);
     fprintf(fic, "set xrange [STATS_min_x:STATS_max_x]\n");
     //fprintf(fic, "set yrange [0: 1 + STATS_max_y + %f * (STATS_max_y-STATS_min_y)]\n\n", BORDER);
-    if (pparerr->option_godunov)
-        fprintf(fic, "plot \'%s/plot.dat\' using 1:3 title \"error\" w lp", pparerr->complete_path_output);
-    if (pparerr->option_rusanov && !(pparerr->option_godunov))
-        fprintf(fic, "plot \'%s/plot.dat\' using 1:3 title \"error\" w lp", pparerr->complete_path_output);
-    if (pparerr->option_rusanov && pparerr->option_godunov)
-        fprintf(fic, ", \'%s/plot.dat\' using 1:5 title \"error\" w lp", pparerr->complete_path_output);
-    fprintf(fic, "\n\n");
+    
+    fprintf(fic, "plot ");
+    if (pparerr->option_godunov){
+        fprintf(fic, "\'%s/plot.dat\' using 1:3 title \"godunov\" w lp lc rgb \"blue\"", pparerr->complete_path_output);
+
+        if ((pparerr->option_rusanov) || (pparerr->option_muscl))
+            fprintf(fic, ", ");
+    }
+    if (pparerr->option_rusanov){
+        fprintf(fic, "\'%s/plot.dat\' using 1:%d title \"rusanov\" w lp lc rgb \"red\"",
+                pparerr->complete_path_output,
+                3 + 2 * pparerr->option_godunov);
+        
+        if (pparerr->option_muscl)
+            fprintf(fic, ", ");
+    }
+    if (pparerr->option_muscl)
+        fprintf(fic, "\'%s/plot.dat\' using 1:%d title \"MUSCL\" w lp lc rgb \"green\"",
+                pparerr->complete_path_output,
+                3 + 2 * (pparerr->option_godunov + pparerr->option_rusanov));
     
     fclose(fic);
     free(name_file);

@@ -33,7 +33,7 @@ int main(int argc, char * argv[]){
         }
     }
 
-    if ((gflag==0) && (rflag==0))
+    if ((gflag==0) && (rflag==0) && (mflag==0))
         errflag++;
 
     if ((argc-optind) != 2)
@@ -49,8 +49,12 @@ int main(int argc, char * argv[]){
     strcpy(path_output, argv[optind]);
 
     parameters_error parerr = {0};
-    
+
     parameters_error_init_file(&parerr, path_input, path_output, gflag, rflag, mflag);
+
+    printf("len_N={%d}, g=%d, r=%d, m=%d\n", parerr.len_liste_N, parerr.option_godunov,
+                    parerr.option_rusanov, parerr.option_muscl);
+
     parameters_error_compute(&parerr);
     parameters_error_plot(&parerr);
     parameters_error_free(&parerr);

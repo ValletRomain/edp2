@@ -47,7 +47,7 @@ int main(int argc, char * argv[]){
         }
     }
 
-    if ((gflag==0) && (rflag==0))
+    if ((gflag==0) && (rflag==0) && (mflag==0))
         errflag++;
 
     if ((argc-optind) != 2)
@@ -65,9 +65,13 @@ int main(int argc, char * argv[]){
 
     parameters par = {0};
     
+    printf("g=%d, r=%d, m=%d \n", gflag, rflag, mflag);
+
     parameters_init_file(&par,
                         path_input, path_output,
-                        aflag, gflag, rflag, mflag);
+                        gflag, rflag, mflag);
+
+    printf("p.m=%d\n", par.option_muscl);
 
     if (gflag)
         godunov_solve(&par, 1);
@@ -77,7 +81,8 @@ int main(int argc, char * argv[]){
         muscl_solve(&par, 1);
 
     parameters_plot(&par);
-    //parameters_free(&par);
+    
+    parameters_free(&par);
 
     exit(0);
 }
