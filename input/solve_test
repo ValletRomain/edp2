@@ -1,6 +1,5 @@
 Test solve
 
-keept_solexacte 1
 option burgers_1d_1
 xmin -2
 xmax 2

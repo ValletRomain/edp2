@@ -1,6 +1,5 @@
 Resolution du probleme du transport par godunov : example 3
 
-keept_solexacte 1
 option transport_1d_1
 xmin -1
 xmax 1
