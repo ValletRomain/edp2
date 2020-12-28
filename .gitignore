@@ -17,3 +17,5 @@ plots/
 new_src/
 execute.bash
 output/
+*fdb_latexmk
+*.fls
