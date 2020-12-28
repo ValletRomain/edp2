@@ -5,6 +5,5 @@ option burgers_1d_1
 xmin -2
 xmax 2
 cfl 0.5
-m 1
 N 1000
 tmax 2

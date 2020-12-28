@@ -5,6 +5,5 @@ option transport_1d_1
 xmin -1
 xmax 1
 cfl 0.5
-m 1
 N 100
 tmax 0.5

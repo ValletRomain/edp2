@@ -5,7 +5,6 @@ option_godunov transport_1d_1
 xmin -1
 xmax 1
 cfl 1.01
-m 1
 len_liste_N 5
 liste_N 1 10 100 1000 10000
 tmax 0.5
