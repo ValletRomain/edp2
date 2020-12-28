@@ -1,68 +1,96 @@
-# Partial derivative partial
-TP of classes EDP2 of Master CSMI
+# TP1 : 
 
+Il y a encore certaine erreur dont le calcul de Rusanov (qui fonctionne pour l'équation du transport mais pas pour burgers).
 
-## Introduction
+Cette branche implémente la résolution des équations hyperboliques en 1 dimension 
+avec les méthode de Godunov, Rusanov et MUSCL. Elle contient les codes source de deux application :
+* solve : résout le problème avec les différentes méthodes
+* compute_error : calcul les erreurs entre le résulat des méthodes et la solution exacte en fonction du paramètre N (nombre de points en espace)
 
-Le projet est l'implementation du schéma de godunov appliqué aux l'équations de transport et de burgers. Il suit la trame donné par le sujet ph-tp1.pdf.
+## use_me
+
+Un petit fichier bash est présent à la racine qui éxécute les différentes étapes suivantes (compilation puis éxécution de certain problèmes). Aprèes l'éxécution de ce fichier,  les résultats seront présents dans le dossier output.
 
 ## Architecture du projet
 
 Le projet est composé par :
 
-- src : code source
--- raler.c : implemente une fonction de message d'erreur
--- godunov.h : header des code source
--- parameters.c : implemente les différentes fonctions qui paramètre le problème (solution exacte, norme L1 ...)
--- function.c : implemente les différentes fonctions d'initialisation, de plot,de résolution du schéma de godunov et du calcul de l'erreur en fonction du nombre N
--- godunov.c : implemente le calcul du schéma de godunov
--- godunov_error.c : implemente le calcul de l'erruer entre la résultat du schéma de godunov et la solution exacte
-- input : contient des fichiers comprenant les paramètres des problèmes calculés
-- output : contient les résultats des résolutions
-- Latex : contient les fichier source du rapport
+* src : code source
+    * solve.c : implemente l'application solve
+    * compute_error.c : implemente l'application compute_error
+    * parameters.c : contient les classes qui regroupe les différents paramètres
+    * parameters_equation.c : contient les différentes fonctions servant aux deux applications
+* input : contient des fichiers comprenant les paramètres des problèmes à calculer
+* Latex : contient les fichier source du rapport
 
 ## Compilation et execution des applications
 
 Nous avons deux applicaiton :
-- godunov
-- godunov_error
+- solve
+- compute_error
 
 Pour les compiler vous pouvez utilisez gcc :
-- gcc godunov.c -o godunov -lm
-- gcc godunov_error.c -o godunov_error -lm
+- gcc solve.c -o solve -lm
+- gcc compute_error.c -o compute_error -lm
 
-Ou cmake en utilisant le fichier CMakeLists.txt.
+Ou cmake en utilisant le fichier CMakeLists.txt :
+- créer un fichier build (mkdir build) puis aller dedans
+- cmake ..
+- make
 
-### Execution godunov
+### Executions
 
-Pour executer l'application godunov, nous avons la synthaxe :
-- ./godunov init_file output_path
+#### solve
 
-Avec init_file un fichier composé des paramètres du problème. Vous pouvez voire les exmaples dans input.
+Usage de l'application :
+    solve {g|r|m|e} path_input path_output
 
-Avec output_path le chemin du repertoire du dossier contenant les résultats de la résolution. Le nom de ce dossier est le nom du fichier init_file. Ce dossier est composé de la manière suivante :
-- parameters : récapitulant touts les paramètres du problèmes
-- plot.dat : composés de trois colonnes -> les abscisses, la solution numérique et la solution exacte
-- plotcom.gnu : permettant de tracer le graphique des données de plot.dat
-- graphe.png : le graphe des données de plot.dat
+path_input : chemin du fichier d'entré. Ce fichier contient les paramètres du problème :
+    - option_godunov : equation à résoudre
+    - xmin
+    - xmax
+    - cfl
+    - N : nombre de point en espace
+    - tmax : borne temporelle
+    Vous pouvez voir des examples dans input
 
-Ce dossier, ainsi que ses fichiers, sont créés directement par l'application. Le plotcom est vide, il faut le remplir manuellement (puis soit vous réexécuter l'application soit vous tracer directement le graphe en ligne de commande).
+path_output : chemin du dossier ou sera créer le dossier de sortie (du même nom que le fichier d'entrée) qui contiendra les résultats. Il est structuré comme ceci :
+    - parameters : contient les différents paramètres du problème
+    - plot.dat : résultat du problème en espace
+    - plotcom.gnu : sert à générer le graphique
+    - plot.png : graphique des résultats en espace
 
-### Execution godunov_error
+option :
+    - g résout le problème avec la méthode de Godunov
+    - r résout le problème avec la méthode de Rusanov
+    - m résout le problème avec la méthode MUSCL
+    - e calcul l'erreur exacte
 
-Pour executer l'application godunov, nous avons la synthaxe :
-- ./godunov_error init_file output_path
+#### compute_error
 
-Avec init_file un fichier composé des paramètres du problème. Vous pouvez voire les examples dans input.
+Usage de l'application :
+    compute_error {g|r|m} path_input path_output
 
-Avec output_path le chemin du repertoire du dossier contenant les résultats de la résolution. Le nom de ce dossier est le nom du fichier init_file. Ce dossier est composé de la manière suivante :
-- parameters : récapitulant touts les paramètres du problèmes
-- error.dat : composés de trois colonnes -> les abscisses, l'erreur
-- error.png : le graphe des données de error.dat
-- time.dat : composés de trois colonnes -> les abscisses, la durée des résolutions
-- time.png : le graphe des données de time.dat
-- plotcom.gnu : permettant de tracer le graphique des données de plot.dat
+path_input : chemin du fichier d'entré. Ce fichier contient les paramètres du problème :
+    - option_error : norme de l'erreur
+    - option_godunov : equation à résoudre
+    - xmin
+    - xmax
+    - cfl
+    - len_liste_N : longueur de liste_N
+    - liste_N : liste des dimension spatiale N servant à calculer l'erreur
+    - tmax : borne temporelle
+    Vous pouvez voir des examples dans input
 
-Ce dossier, ainsi que ses fichiers, sont créés directement par l'application. Le plotcom est vide, il faut le remplir manuellement (puis soit vous réexécuter l'application soit vous tracer directement le graphe en ligne de commande).
+path_output : chemin du dossier ou sera créer le dossier de sortie qui contiendra les résultats. Il est structuré comme ceci :
+    - parameters : contient les différents paramètres du problème
+    - plot.dat : résultat du calcul (temps et erreur)
+    - plotcom.gnu : sert à générer le graphique
+    - error.png : graphique des erreur en fonction de N
+    - time.png : graphique des durée en fonction de N
 
-L'application initialise et résout len_N fois le même problème mais en faisant varier le nombre N (nombre d'abscisses).
+option :
+    - g calcul l'erreur avec la méthode de Godunov
+    - r calcul l'erreur avec la méthode de Rusanov
+    - m rcalcul l'erreur avec la méthode MUSCL
+
