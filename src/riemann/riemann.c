@@ -163,7 +163,7 @@ void plot_riem(double *wL,
   }
   fclose(plotfile);
 
-  system("gnuplot riemcom");
+  system("gnuplot riemcom.gnu");
 
 }
 
