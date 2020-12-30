@@ -8,14 +8,14 @@ double g = 9.81;
 
 void main(void){
 
-  double hL=2;
-  double uL=0;
+  double hL = 2;
+  double uL = 0;
 
-  double hR=1;
-  double uR=0;
+  double hR = 1;
+  double uR = 0;
 
-  double wL[2]={hL, hL * uL};
-  double wR[2]={hR, hR * uR};
+  double wL[2] = {hL, hL * uL};
+  double wR[2] = {hR, hR * uR};
 
   double xi = 0;
   double w[2];
@@ -182,7 +182,8 @@ double Dirac(double x){
 double Z(double hs,
 	 double h){
 
-double t0 = 2.0*sqrt(g)/(sqrt(hs)+sqrt(h))*Heaviside(h-hs)+sqrt(2.0)*sqrt(g)*sqrt(h+hs)/sqrt(h*hs)/2.0-sqrt(2.0)*sqrt(g)*sqrt(h+hs)/sqrt(h*hs)*Heaviside(h-hs)/2.0;
+double t0 = 2.0*sqrt(g)/(sqrt(hs) + sqrt(h))*Heaviside(h-hs) + sqrt(2.0)*sqrt(g)*sqrt(h+hs)/sqrt(h*hs)/2.0
+            - sqrt(2.0)*sqrt(g)*sqrt(h+hs)/sqrt(h*hs)*Heaviside(h-hs)/2.0;
 
  return t0;
   
@@ -191,14 +192,9 @@ double t0 = 2.0*sqrt(g)/(sqrt(hs)+sqrt(h))*Heaviside(h-hs)+sqrt(2.0)*sqrt(g)*sqr
 double dZ(double hs,
 	  double h){
 
-   double t0 = -sqrt(g)/pow(sqrt(hs)+sqrt(h),2.0)*Heaviside(h-hs)/sqrt(hs)-2.0*sqrt
-(g)/(sqrt(hs)+sqrt(h))*Dirac(-h+hs)+sqrt(2.0)*sqrt(g)/sqrt(h+hs)/sqrt(h*hs)/4.0
--sqrt(2.0)*sqrt(g)*sqrt(h+hs)/sqrt(h*h*h*hs*hs*hs)*h/4.0-sqrt(2.0)*sqrt(g)/sqrt
-(h+hs)/sqrt(h*hs)*Heaviside(h-hs)/4.0+sqrt(2.0)*sqrt(g)*sqrt(h+hs)/sqrt(h*h*h*
-hs*hs*hs)*Heaviside(h-hs)*h/4.0+sqrt(2.0)*sqrt(g)*sqrt(h+hs)/sqrt(h*hs)*Dirac(-
-h+hs)/2.0;
+   double t0 = - sqrt(g)/pow(sqrt(hs) + sqrt(h),2.0)*Heaviside(h-hs)/sqrt(hs) - 2.0*sqrt(g)/(sqrt(hs) + sqrt(h))*Dirac(-h+hs) + sqrt(2.0)*sqrt(g)/sqrt(h+hs)/sqrt(h*hs)/4.0
+                - sqrt(2.0)*sqrt(g)*sqrt(h+hs)/sqrt(h*h*h*hs*hs*hs)*h/4.0 - sqrt(2.0)*sqrt(g)/sqrt(h+hs)/sqrt(h*hs)*Heaviside(h-hs)/4.0
+                + sqrt(2.0)*sqrt(g)*sqrt(h+hs)/sqrt(h*h*h*hs*hs*hs)*Heaviside(h-hs)*h/4.0+sqrt(2.0)*sqrt(g)*sqrt(h+hs)/sqrt(h*hs)*Dirac(-h+hs)/2.0;
 
    return t0;
-
-
 }
