@@ -6,50 +6,42 @@
 #include <math.h>
 
 
-
 //-----------------------------------------------------------------------------
-// Saint Venant 1d
+// Equation of Saint-Venant 1d
 //-----------------------------------------------------------------------------
 
-void flux_riem_2d(double *wL, double *wR, double *vnorm, double *flux){
 
-  double qnL = wL[1] * vnorm[0] +  wL[2] * vnorm[1]; 
-  double qnR = wR[1] * vnorm[0] +  wR[2] * vnorm[1];
 
-  double qtL = -wL[1] * vnorm[1] +  wL[2] * vnorm[0];
-  double qtR = -wR[1] * vnorm[1] +  wR[2] * vnorm[0];
-
-  double vL[2] = {wL[0], qnL};
-  double vR[2] = {wR[0], qnR};
-
-  double v[2];
-  double xi = 0;
-
-  riem_stvenant(vL, vR, xi, v);
-
-  double un = v[1] / v[0];
-
-  double ut;
-
-  if (un > 0)
-    ut = qtL / wL[0];
+double Heaviside(double x){
+  if (x > 0)
+    return 1;
   else
-    ut = qtR / wR[0];
-
-  double qn = v[1];
-  double qt = ut * v[0];
-
-  double w[3];
-  w[0] = v[0];
-  w[1] = qn * vnorm[0] - qt * vnorm[1];
-  w[2] = qn * vnorm[1] + qt * vnorm[0];
-
+    return 0;
 }
 
-void riem_stvenant(double *wL,
-		   double *wR,
-		   double xi,
-		   double *w){
+double Dirac(double x){
+    return 0;
+}
+
+double Z(double hs, double h){
+
+double t0 = 2.0*sqrt(g)/(sqrt(hs) + sqrt(h))*Heaviside(h-hs) + sqrt(2.0)*sqrt(g)*sqrt(h+hs)/sqrt(h*hs)/2.0
+            - sqrt(2.0)*sqrt(g)*sqrt(h+hs)/sqrt(h*hs)*Heaviside(h-hs)/2.0;
+
+ return t0;
+  
+}
+
+double dZ(double hs, double h){
+
+   double t0 = - sqrt(g)/pow(sqrt(hs) + sqrt(h),2.0)*Heaviside(h-hs)/sqrt(hs) - 2.0*sqrt(g)/(sqrt(hs) + sqrt(h))*Dirac(-h+hs) + sqrt(2.0)*sqrt(g)/sqrt(h+hs)/sqrt(h*hs)/4.0
+                - sqrt(2.0)*sqrt(g)*sqrt(h+hs)/sqrt(h*h*h*hs*hs*hs)*h/4.0 - sqrt(2.0)*sqrt(g)/sqrt(h+hs)/sqrt(h*hs)*Heaviside(h-hs)/4.0
+                + sqrt(2.0)*sqrt(g)*sqrt(h+hs)/sqrt(h*h*h*hs*hs*hs)*Heaviside(h-hs)*h/4.0+sqrt(2.0)*sqrt(g)*sqrt(h+hs)/sqrt(h*hs)*Dirac(-h+hs)/2.0;
+
+   return t0;
+}
+
+void riem_stvenant(double *wL, double *wR, double xi, double *w){
 
   double hL = wL[0];
   double uL = wL[1]/wL[0];
@@ -127,135 +119,62 @@ void riem_stvenant(double *wL,
 
 }
 
-void plot_riem(double *wL,
-	       double *wR){
+void flux_riem_2d(double *wL, double *wR, double *vnorm, double *flux){
 
-  FILE *plotfile;
+  double qnL = wL[1] * vnorm[0] +  wL[2] * vnorm[1]; 
+  double qnR = wR[1] * vnorm[0] +  wR[2] * vnorm[1];
 
-  double xmin = -5;
-  double xmax = 5;
+  double qtL = -wL[1] * vnorm[1] +  wL[2] * vnorm[0];
+  double qtR = -wR[1] * vnorm[1] +  wR[2] * vnorm[0];
 
-  int n = 1000;
-  double dx = (xmax - xmin)/n;
-  plotfile = fopen("riem.dat", "w");
-  for(int i = 0; i < n; i++){
-    double xi = xmin+i*dx;
-    double w[2];
-    riem_stvenant(wL,wR,xi,w);
-    double h = w[0];
-    double u = w[1]/w[0];
-    fprintf(plotfile, "%f %f %f\n",
-	    xi, h, u);
-  }
-  fclose(plotfile);
+  double vL[2] = {wL[0], qnL};
+  double vR[2] = {wR[0], qnR};
 
-  system("gnuplot riemcom");
+  double v[2];
+  double xi = 0;
 
-}
+  riem_stvenant(vL, vR, xi, v);
 
-double Heaviside(double x){
-  if (x > 0)
-    return 1;
+  double un = v[1] / v[0];
+
+  double ut;
+
+  if (un > 0)
+    ut = qtL / wL[0];
   else
-    return 0;
-}
+    ut = qtR / wR[0];
 
-double Dirac(double x){
-    return 0;
-}
+  double qn = v[1];
+  double qt = ut * v[0];
 
+  double w[3];
+  w[0] = v[0];
+  w[1] = qn * vnorm[0] - qt * vnorm[1];
+  w[2] = qn * vnorm[1] + qt * vnorm[0];
 
-double Z(double hs,
-	 double h){
-
-double t0 = 2.0*sqrt(g)/(sqrt(hs) + sqrt(h))*Heaviside(h-hs) + sqrt(2.0)*sqrt(g)*sqrt(h+hs)/sqrt(h*hs)/2.0
-            - sqrt(2.0)*sqrt(g)*sqrt(h+hs)/sqrt(h*hs)*Heaviside(h-hs)/2.0;
-
- return t0;
-  
-}
-
-double dZ(double hs,
-	  double h){
-
-   double t0 = - sqrt(g)/pow(sqrt(hs) + sqrt(h),2.0)*Heaviside(h-hs)/sqrt(hs) - 2.0*sqrt(g)/(sqrt(hs) + sqrt(h))*Dirac(-h+hs) + sqrt(2.0)*sqrt(g)/sqrt(h+hs)/sqrt(h*hs)/4.0
-                - sqrt(2.0)*sqrt(g)*sqrt(h+hs)/sqrt(h*h*h*hs*hs*hs)*h/4.0 - sqrt(2.0)*sqrt(g)/sqrt(h+hs)/sqrt(h*hs)*Heaviside(h-hs)/4.0
-                + sqrt(2.0)*sqrt(g)*sqrt(h+hs)/sqrt(h*h*h*hs*hs*hs)*Heaviside(h-hs)*h/4.0+sqrt(2.0)*sqrt(g)*sqrt(h+hs)/sqrt(h*hs)*Dirac(-h+hs)/2.0;
-
-   return t0;
-}
-
-//-----------------------------------------------------------------------------
-// Equation of Saint-Venant
-
-double lambda_ma_sv_1d(double a){
-     return a;
-}
-
-double Riemann_sv_1d(double u_L, double u_R, double z){
-
-    double sigma = (u_L + u_R) / 2;
-    double r;
-
-    if (u_L < u_R){
-        if (z < u_L)
-            r = u_L;
-        else if (z > u_R)
-            r = u_R;
-        else 
-            r = z;
-    }
-    else {
-        if (z < sigma)
-            r = u_L;
-        else
-            r = u_R;
-    }
-
-    return r;
-}
-
-double fluxnum_gd_sv_1d(double a, double b){
-    
-    double r = Riemann_sv_1d(a, b, 0);
-    
-    return r * r / 2;
-}
-
-double fluxnum_ru_sv_1d(double a, double b){
-
-    return 1/2 * (b-a) * ( (a+b)/2 - fmax(fabs(a),fabs(b)) );
 }
 
 // Example 1 of resolution of equation of burgers avec u_L > u_R
 
-#define u_L1 2
-#define u_R1 1
+#define w_L = {0, 2}
+#define w_R = {0, 1}
 
-double solexacte_sv(double x, double t){
+double boundary_spatial_sv(double x, double *w){
 
-    double sigma = (u_L1+u_R1) / 2;
-
-    if (x < sigma * t){
-        return u_L1;
-    } else {
-        return u_R1;
-    }
+    w[0] = 0;
+    w[1] = 0;
 }
 
-double boundary_spatial_sv(double x){
+double boundary_temporal_left_sv(double xmin, double t, double *w){
 
-    return solexacte_burgers1(x, 0);
+    w[0] = 0;
+    w[0] = 0;
 }
 
-double boundary_temporal_left_sv(double xmin, double t){
+double boundary_temporal_right_sv(double xmax, double t, double *w){
 
-    return solexacte_sv(xmin, t);
-}
-
-double boundary_temporal_right_sv(double xmax, double t){
-
-    return solexacte_sv(xmax, t);
+    w[0] = 0;
+    w[1] = 0;
 }
 
 
@@ -263,6 +182,7 @@ double boundary_temporal_right_sv(double xmax, double t){
 // Pour la méthode MUSCL
 //-----------------------------------------------------------------------------
 
+/*
 double minmod(double a, double b, double c){
 
     if ((a < 0) && (b < 0) && (c < 0))
@@ -288,11 +208,13 @@ double w_half_p(double w_i, double w_ip1, double w_ip2){
 
     return w_ip1 - r/(double)2;
 }
+*/
 
 //-----------------------------------------------------------------------------
 // Calcul des normes
 //-----------------------------------------------------------------------------
 
+/*
 double norm_L1(int I, double * a, double * b){
     // Calcul l'erreur en norme L_1 entre le tableau a et le tableau b
 
@@ -328,3 +250,4 @@ double norm_inf(int I, double * a, double * b){
     }
     return norm;
 }
+*/

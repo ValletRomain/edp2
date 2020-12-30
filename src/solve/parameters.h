@@ -28,18 +28,18 @@ typedef struct parameters{
     double (*plambda_ma)(double);
 
     // Flux for godunov
-    double (*pfluxnum_gd)(double, double);
+    double (*pfluxnum_gd)(double, double, double*);
 
     // Flux for rusanov
-    double (*pfluxnum_ru)(double, double);
+    double (*pfluxnum_ru)(double, double, double*);
 
     // Border condition
-    double (*pboundary_spatial)(double);
-    double (*pboundary_temporal_left)(double, double);
-    double (*pboundary_temporal_right)(double, double);
+    double (*pboundary_spatial)(double, double*);
+    double (*pboundary_temporal_left)(double, double, double*);
+    double (*pboundary_temporal_right)(double, double, double*);
 
     // Solution exacte
-    double (*psolexacte)(double, double);
+    double (*psolexacte)(double, double*);
 
 
     // Resultats du probleme
@@ -54,15 +54,15 @@ typedef struct parameters{
     double *unp1; // solution a l'instant n+1
 
     // Rusanov
-    double *vn; // solution a l'instant n
-    double *vnp1; // solution a l'instant n+1
+    double ** vn; // solution a l'instant n
+    double ** vnp1; // solution a l'instant n+1
 
     // MUSCL
-    double *wn;
-    double *wnp1;
+    double ** wn;
+    double ** wnp1;
 
     // solution exact
-    double *sol;
+    double ** sol;
 
     int int_tnow_gd;
     int int_tnow_ru;
