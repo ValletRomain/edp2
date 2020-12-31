@@ -22,11 +22,11 @@ target_link_libraries(solve PRIVATE m)
 #target_link_libraries(compute_error PRIVATE m)
 
 # Riemann Saint-Venant
-project(riemann)
+#project(riemann)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c+11")
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c+11")
 
-set(RIEMANN_FILES src/riemann/riemann.c)
-add_executable(riemann ${RIEMANN_FILES})
+#set(RIEMANN_FILES src/riemann/riemann.c)
+#add_executable(riemann ${RIEMANN_FILES})
 
-target_link_libraries(riemann PRIVATE m)
+#target_link_libraries(riemann PRIVATE m)
