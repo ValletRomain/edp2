@@ -382,12 +382,16 @@ void muscl_solve(parameters *ppar, int option_visual){
 
         for(int i = 1; i < ppar->N+1; i++){
             double flux;
-            flux = ppar->pfluxnum_gd(w_half_l(ppar->wn[i-1], ppar->wn[i], ppar->wn[i+1]),
-                                        w_half_p(ppar->wn[i], ppar->wn[i+1], ppar->wn[i+2]));
+            double t_i = t(ppar->wn[i-1], ppar->wn[i], ppar->wn[i+1]);
+            double t_ip1 = t(ppar->wn[i], ppar->wn[i+1], ppar->wn[i+2]);
+            double t_il1 = t(ppar->wn[i-2], ppar->wn[i-1], ppar->wn[i]);
+
+            flux = ppar->pfluxnum_gd(ppar->wn[i] + t_i/2 + ppar->plambda_ma(ppar->wn[i]) * ppar->dt/2 * t_i/ppar->dx,
+                                        ppar->wn[i+1] - t_ip1/2 + ppar->plambda_ma(ppar->wn[i+1]) * ppar->dt/2 * t_ip1/ppar->dx);
             ppar->wnp1[i] = ppar->wn[i] - ppar->dt/ppar->dx * flux;
             
-            flux = ppar->pfluxnum_gd(w_half_l(ppar->wn[i-2], ppar->wn[i-1], ppar->wn[i]),
-                                        w_half_p(ppar->wn[i-1], ppar->wn[i], ppar->wn[i+1]));
+            flux = ppar->pfluxnum_gd(ppar->wn[i-1] + t_il1/2 + ppar->plambda_ma(ppar->wn[i-1]) * ppar->dt/2 * t_il1/ppar->dx,
+                                        ppar->wn[i] - t_i/2 + ppar->plambda_ma(ppar->wn[i]) * ppar->dt/2 * t_i/ppar->dx);
             ppar->wnp1[i] += ppar->dt / ppar->dx * flux;
         }
         // mise à jour

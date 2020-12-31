@@ -215,20 +215,9 @@ double minmod(double a, double b, double c){
         return 0;
 }
 
-double w_half_l(double w_il1, double w_i, double w_ip1){
-    // Remplie dest tel que dest[0] = a_{1+1/2},-
+double t(double w_il1, double w_i, double w_ip1){
 
-    double r = minmod(w_i-w_il1, w_ip1-w_i, (w_ip1-w_il1)/(double)2);
-
-    return w_i + r/(double)2;
-}
-
-double w_half_p(double w_i, double w_ip1, double w_ip2){
-    // Remplie dest tel que dest[0] = a_{1+1/2},-
-
-    double r = minmod(w_ip1-w_i, w_ip2-w_ip1, (w_ip2-w_i)/(double)2);
-
-    return w_ip1 - r/(double)2;
+    return minmod(w_i-w_il1, w_ip1-w_i, (w_ip1-w_il1)/(double)2);
 }
 
 //-----------------------------------------------------------------------------
