@@ -181,7 +181,7 @@ double lambda_ma_sv(double * w){
   return 1;
 }
 
-// Example 1 of resolution of equation of burgers avec u_L > u_R
+// Equation Saint-Venant (problème de Riemann)
 
 #define uL 0
 #define hL 2
@@ -212,6 +212,39 @@ void boundary_temporal_right_1(double xmax, double t, double *w){
     w[1] = hR * uR; 
 }
 
+
+// Problème du bassin
+
+// Example 1 of resolution of equation of burgers avec u_L > u_R
+
+#define uL2 0
+#define hL2 2
+#define uR2 0
+#define hR2 1
+
+void boundary_spatial_1(double x, double *w){
+
+  if (x <= 0){
+    w[0] = hL2;
+    w[1] = hL2 * uL2;    
+  }
+  else if (x > 0){
+    w[0] = hR2;
+    w[1] = hR2 * uR2;   
+  }
+}
+
+void boundary_temporal_left_1(double xmin, double t, double *w){
+
+    w[0] = w[0];
+    w[1] = -w[1];  
+}
+
+void boundary_temporal_right_1(double xmax, double t, double *w){
+
+    w[0] = w[0];
+    w[1] = - w[1]; 
+}
 
 //-----------------------------------------------------------------------------
 // Pour la méthode MUSCL
