@@ -98,8 +98,8 @@ int main(int argc, char * argv[]){
         godunov_solve(&par, 1);
     if (rflag)
         rusanov_solve(&par, 1);
-    if (mflag)
-        muscl_solve(&par, 1);
+    //if (mflag)
+    //    muscl_solve(&par, 1);
 
     parameters_plot(&par);
     

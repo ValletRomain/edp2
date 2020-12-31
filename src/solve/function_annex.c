@@ -24,15 +24,15 @@ void give_parameters(parameters * ppar, char * option_equation){
 
         ppar->m = 1;
 
-        ppar->plambda_ma = lambda_ma_sv_1d;
-        ppar->pfluxnum_gd = fluxnum_gd_sv_1d;
-        ppar->pfluxnum_ru = fluxnum_ru_sv_1d;
+        ppar->plambda_ma = lambda_ma_sv;
+        ppar->pfluxnum_gd = fluxnum_gd_sv;
+        ppar->pfluxnum_ru = fluxnum_ru_sv;
 
-        ppar->pboundary_spatial = boundary_spatial_sv;
-        ppar->pboundary_temporal_left = boundary_temporal_left_sv;
-        ppar->pboundary_temporal_right = boundary_temporal_right_sv;
+        ppar->pboundary_spatial = boundary_spatial_1;
+        ppar->pboundary_temporal_left = boundary_temporal_left_1;
+        ppar->pboundary_temporal_right = boundary_temporal_right_1;
 
-        ppar->psolexacte = solexacte_sv;
+        //ppar->psolexacte = solexacte_sv;
     }
     if (option_equation == "saint_venant_2d"){
 
@@ -41,6 +41,7 @@ void give_parameters(parameters * ppar, char * option_equation){
     }
 }
 
+/*
 void give_error_parameters(parameters_error * pparerr, char * option_error){
     // Distrib the function pointers for parameters_error pparerr depending on
     // option
@@ -58,7 +59,7 @@ void give_error_parameters(parameters_error * pparerr, char * option_error){
         raler(0,"The option \"%s\" dot not exist", option_error);
     }
 }
-
+*/
 
 //-----------------------------------------------------------------------------
 // Fonction output

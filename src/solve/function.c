@@ -284,10 +284,10 @@ void godunov_solve(parameters *ppar, int option_visual){
         
         ppar->dt = ppar->cfl * ppar->dx / vmax;
         for(int i = 1; i < ppar->N+1; i++){
-            double flux[m];
+            double flux[ppar->m];
             ppar->pfluxnum_gd(ppar->un[i], ppar->un[i+1], flux);
             for (int iv=0; iv < ppar->m; iv++)
-                ppar->unp1[iv] = ppar->un[i][iv] - ppar->dt/ppar->dx * flux[iv];
+                ppar->unp1[i][iv] = ppar->un[i][iv] - ppar->dt/ppar->dx * flux[iv];
 
             ppar->pfluxnum_gd(ppar->un[i-1], ppar->un[i], flux);
             for (int iv=0; iv < ppar->m; iv++)
@@ -341,7 +341,7 @@ void rusanov_solve(parameters *ppar, int option_visual){
             double flux[ppar->m];
             ppar->pfluxnum_ru(ppar->vn[i], ppar->vn[i+1], flux);
             for (int iv=0; iv < ppar->m; iv++)
-                ppar->unp1[iv] = ppar->un[i][iv] - ppar->dt/ppar->dx * flux[iv];
+                ppar->unp1[i][iv] = ppar->un[i][iv] - ppar->dt/ppar->dx * flux[iv];
             
             ppar->pfluxnum_ru(ppar->vn[i-1], ppar->vn[i], flux);
             for (int iv=0; iv < ppar->m; iv++)
@@ -369,6 +369,7 @@ void rusanov_solve(parameters *ppar, int option_visual){
         printf("Fin Resolution rusanov\n");
 }
 
+/*
 void muscl_solve(parameters *ppar, int option_visual){
     
     // Solve the problem of ppar
@@ -398,7 +399,7 @@ void muscl_solve(parameters *ppar, int option_visual){
                                         w_half_p(ppar->wn[i], ppar->wn[i+1], ppar->wn[i+2]),
                                         flux);
             for (int iv=0; iv < ppar->m; iv++)
-                ppar->unp1[iv] = ppar->un[i][iv] - ppar->dt/ppar->dx * flux[iv];
+                ppar->unp1[i][iv] = ppar->un[i][iv] - ppar->dt/ppar->dx * flux[iv];
             
             ppar->pfluxnum_gd(w_half_l(ppar->wn[i-2], ppar->wn[i-1], ppar->wn[i]),
                                         w_half_p(ppar->wn[i-1], ppar->wn[i], ppar->wn[i+1]),
@@ -429,8 +430,9 @@ void muscl_solve(parameters *ppar, int option_visual){
     }
 
 }
+*/
 
-
+/*
 //-----------------------------------------------------------------------------
 // Calcul des erreurs
 //-----------------------------------------------------------------------------
@@ -689,3 +691,4 @@ void parameters_error_compute(parameters_error *pparerr){
     printf("Fin calcul des erreurs\n");
 
 }
+*/

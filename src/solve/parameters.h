@@ -25,21 +25,21 @@ typedef struct parameters{
     double tmax;
 
     // Parameters of equation
-    double (*plambda_ma)(double);
+    double (*plambda_ma)(double*);
 
     // Flux for godunov
-    double (*pfluxnum_gd)(double, double, double*);
+    void (*pfluxnum_gd)(double*, double*, double*);
 
     // Flux for rusanov
-    double (*pfluxnum_ru)(double, double, double*);
+    void (*pfluxnum_ru)(double*, double*, double*);
 
     // Border condition
-    double (*pboundary_spatial)(double, double*);
-    double (*pboundary_temporal_left)(double, double, double*);
-    double (*pboundary_temporal_right)(double, double, double*);
+    void (*pboundary_spatial)(double, double*);
+    void (*pboundary_temporal_left)(double, double, double*);
+    void (*pboundary_temporal_right)(double, double, double*);
 
     // Solution exacte
-    double (*psolexacte)(double, double*);
+    double (*psolexacte)(double, double, double*);
 
 
     // Resultats du probleme
@@ -50,8 +50,8 @@ typedef struct parameters{
     double *xi; // centre des milieux des cellules
     
     // Godunov
-    double *un; // solution a l'instant n
-    double *unp1; // solution a l'instant n+1
+    double ** un; // solution a l'instant n
+    double ** unp1; // solution a l'instant n+1
 
     // Rusanov
     double ** vn; // solution a l'instant n
@@ -124,7 +124,7 @@ void godunov_solve(parameters *par, int option_visual);
 
 void rusanov_solve(parameters *par, int option_visual);
 
-void muscl_solve(parameters *par, int option_visual);
+//void muscl_solve(parameters *par, int option_visual);
 
 void parameters_error_init(parameters_error *pperr,
                         int option_godunov, int option_rusanov, int option_muscl,

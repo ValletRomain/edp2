@@ -10,7 +10,7 @@
 // Equation of Saint-Venant 1d
 //-----------------------------------------------------------------------------
 
-
+#define g 9.81
 
 double Heaviside(double x){
   if (x > 0)
@@ -62,8 +62,7 @@ void riem_stvenant(double *wL, double *wR, double xi, double *w){
 
     hs += dhs;
 
-    printf("it=%d f=%e df=%e hs=%e dhs=%e\n",it,f,df,hs,dhs);
-    
+    //printf("it=%d f=%e df=%e hs=%e dhs=%e\n",it,f,df,hs,dhs);
   }
 
   double us = uL - (hs - hL) * Z(hs, hL);
@@ -74,7 +73,8 @@ void riem_stvenant(double *wL, double *wR, double xi, double *w){
   if (hs < hL){
     v1m = uL - sqrt(g * hL);
     v1p = us - sqrt(g * hs);
-  } else {
+  }
+  else {
     double a = sqrt(hs) / (sqrt(hs) + sqrt(hL));
     double u = a * us + (1 - a) * uL;
     double h = (hs + hL) / 2;
@@ -86,7 +86,8 @@ void riem_stvenant(double *wL, double *wR, double xi, double *w){
   if (hs < hR){
     v2m = us + sqrt(g * hs);
     v2p = uR + sqrt(g * hR);
-  } else {
+  }
+  else {
     double a = sqrt(hs) / (sqrt(hs) + sqrt(hR));
     double u = a * us + (1 - a) * uR;
     double h = (hs + hR) / 2;
@@ -99,20 +100,24 @@ void riem_stvenant(double *wL, double *wR, double xi, double *w){
   if (xi < v1m) {
     w[0] = wL[0];
     w[1] = wL[1];
-  } else if (xi < v1p){
+  }
+  else if (xi < v1p){
     double u = (uL + 2 * xi + 2 *sqrt(g * hL)) / 3;
     double h = (u - xi) * (u - xi) / g;
     w[0] = h;
     w[1] = h * u;
-  } else if (xi < v2m){
+  }
+  else if (xi < v2m){
     w[0] = hs;
     w[1] = hs * us;
-  } else if (xi < v2p){
+  }
+  else if (xi < v2p){
     double u = (uR + 2 * xi - 2 *sqrt(g * hR)) / 3;
     double h = (u - xi) * (u - xi) / g;
     w[0] = h;
     w[1] = h * u;
-  } else {
+  }
+  else {
     w[0] = wR[0];
     w[1] = wR[1];
   }
@@ -154,34 +159,63 @@ void flux_riem_2d(double *wL, double *wR, double *vnorm, double *flux){
 
 }
 
+void fluxnum_gd_sv(double * wL, double * wR, double * flux){
+
+  riem_stvenant(wL, wR, 0, flux);
+}
+
+void fluxnum_ru_sv(double * wL, double* wR, double * flux){
+
+  double hL = wL[0];
+  double uL = wL[1]/wL[0];
+  double hR = wR[0];
+  double uR = wR[1]/wR[0];
+
+  double lambda = fmax(fabs(uL)+sqrt(g*hL), fabs(uR)+sqrt(g*hR));
+
+  flux[0] = (wL[1] + wR[1]) / 2 - lambda/2 * (wR[0] - wL[0]);
+  flux[1] = (wL[1]*wL[1]/wL[0]+g*wL[0]*wL[0]/2 + wR[1]*wR[1]/wR[0]+g*wR[0]*wR[0]/2) / 2 - lambda/2 * (wR[1] - wL[1]);
+}
+
+double lambda_ma_sv(double * w){
+  return 1;
+}
+
 // Example 1 of resolution of equation of burgers avec u_L > u_R
 
-#define w_L = {0, 2}
-#define w_R = {0, 1}
+#define uL 0
+#define hL 2
+#define uR 0
+#define hR 1
 
-double boundary_spatial_sv(double x, double *w){
+void boundary_spatial_1(double x, double *w){
 
-    w[0] = 0;
-    w[1] = 0;
+  if (x <= 0){
+    w[0] = hL;
+    w[1] = hL * uL;    
+  }
+  else if (x > 0){
+    w[0] = hR;
+    w[1] = hR * uR;   
+  }
 }
 
-double boundary_temporal_left_sv(double xmin, double t, double *w){
+void boundary_temporal_left_1(double xmin, double t, double *w){
 
-    w[0] = 0;
-    w[0] = 0;
+    w[0] = hL;
+    w[1] = hL * uL;  
 }
 
-double boundary_temporal_right_sv(double xmax, double t, double *w){
+void boundary_temporal_right_1(double xmax, double t, double *w){
 
-    w[0] = 0;
-    w[1] = 0;
+    w[0] = hR;
+    w[1] = hR * uR; 
 }
 
 
 //-----------------------------------------------------------------------------
 // Pour la méthode MUSCL
 //-----------------------------------------------------------------------------
-
 /*
 double minmod(double a, double b, double c){
 
