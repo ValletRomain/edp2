@@ -1,0 +1,8 @@
+Test solve
+
+option burgers_1d_1
+xmin -2
+xmax 2
+cfl 0.5
+N 100
+tmax 0.5
