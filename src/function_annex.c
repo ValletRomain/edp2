@@ -181,7 +181,7 @@ void par_create_execute_gnu(parameters * ppar){
     
     fprintf(fic, "set terminal pngcairo\n");
     fprintf(fic, "set output \'%s/graphe.png\'\n\n", ppar->complete_path_output);
-    fprintf(fic, "set title \"Resolution de %s tmax=%f\"\n", ppar->option_equation, ppar->tmax);
+    fprintf(fic, "set title \"Resolution tmax=%f\"\n", ppar->tmax);
     fprintf(fic, "set xlabel \"x\"\n");
     fprintf(fic, "set ylabel \"u\"\n\n");
     fprintf(fic, "stats \'%s/plot.dat\' using 1:2 nooutput\n", ppar->complete_path_output);
@@ -316,7 +316,7 @@ void parerr_create_execute_gnu(parameters_error * pparerr){
 
     fprintf(fic, "# Graphic of error\n");
     fprintf(fic, "set output \'%s/error.png\'\n\n", pparerr->complete_path_output);
-    fprintf(fic, "set title \"Erreur pour %s en %s\"\n", pparerr->option_equation, pparerr->option_error);
+    fprintf(fic, "set title \"Erreur en fonction de N\"\n");
     fprintf(fic, "set xlabel \"N\"\n");
     fprintf(fic, "set ylabel \"error\"\n\n");
     fprintf(fic, "set logscale x 10\n");
