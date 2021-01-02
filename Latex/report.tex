@@ -1,11 +1,10 @@
 \documentclass{article}
 \usepackage[utf8]{inputenc}
-\usepackage{amsthm}
-\usepackage{amsmath}
-\usepackage{amssymb}
-\usepackage{mathrsfs}
+\usepackage{amsthm, amsmath, amssymb, mathrsfs}
 \usepackage{tikz}
 \usepackage{graphics}
+\usepackage{float}
+\usepackage{multicol}
 
 \newtheorem{recap}{Recapitulation}
 
@@ -80,13 +79,15 @@ Et le flux $f$, reste le même que dans la méthode de Godunov :
 
 Pour faciliter l'implémentation, nous introduisons $r_i^n = \Delta x \; s_i^n$ (les $\Delta x$ disparaissent du calcul du flux).
 
-\section{TP 1}
+\section{question}
 
-Les codes de la résolution numérique du schéma de Godunov est placé dans un repository sous github ($https://github.com/ValletRomain/edp_tp1$).
+Les codes de la résolution numérique du schéma de Godunov est placé dans un repository sous github ($\textit{https://github.com/ValletRomain/edp\_tp1}$).
+
+Certaines fonctionalités du code ne fonctionne pas notament la méthode MUSCL.
 
 \subsection{Résolution numérique de l’équation de transport}
 
-1.
+\subsubsection*{1.}
 
 \[ \left\{ \begin{matrix}
 \partial_t u + c \partial_x u &=& 0 \text{ avec } t \in ]0,T[ \text{ et } x \in ]0,L[  \\
@@ -110,7 +111,9 @@ La solution de \ref{trans1} est de la forme :
 \tag{Sol1}
 \]
 
-2. Si $c < 0$ :
+\subsubsection*{2.}
+
+Si $c < 0$ :
 
 On a pour $t \in ]0,T[$, $-ct>0$, avec l'analyse des courbes caractéristiques, nous avons :
 
@@ -122,7 +125,7 @@ e^{-t} &=& 0
 Nous avons une contradiction, il n'y a pas de solution.
 \newline
 
-3.
+\subsubsection*{3.}
 
 \begin{recap}{Schéma de Godunov pour l'équation de transport}
 
@@ -151,13 +154,41 @@ $\bullet$ Flux de Godunov pour le cas $u_L > u_R$ :
 
 \end{recap}
 
-4.
+\subsubsection*{4.}
 
-5.
+Voici un graphique des erreur en norme $L^1$ en fonction de $N$ (nombre de point spatiaux) pour $t_{max}=0.5$ :
+
+J'en profite pour présenter mes résultats pour les schéma de Rusanov et MUSCL.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.5]{figure/error_transport.png}
+	\caption{Graphique des erreurs en norme $L^1$ en fonction de $N$}
+\end{figure}
+
+Les courbes de l'erreur du shéma de Godunov et de Rusanov se superposent. C'est normal, le flux de Godunov 
+et de Rusanov sont égaux.
+
+Nous pouvons observer que les courbes des shémas de Rusanov et de Godunov décroissent vers 0. C'est schéma 
+sont convergent vers la solution attendue par rapport à $N$.
+
+Quand au schéma MUSCL, nous voyons que cette méthode diverge. Il doit y avoir des problèmes dans mes codes.
+
+\subsubsection*{5.}
+
+Voici le résultat obtenue pour la résolution de l'équation de transport pour une $cfl=1.1$.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.5]{figure/transport_unstable.png}
+	\caption{Résolution de l'équation de transport $cfl=1.01$ et $tmax=0.5$}
+\end{figure}
+
+Nous voyons que la solution diverge fortement.
 
 \subsection{Résolution numérique de l’équation de Burgers}
 
-1. 
+\subsubsection*{1. }
 
 \[ \left\{ \begin{matrix}
 	\partial_t u + \partial_x(\frac{u^2}{2}) &=& 0 \textbf{, } x \in ]-1,2[ \\
@@ -208,8 +239,7 @@ Réciproquement, prenons une tel courbe et prouvons quelle est caractéristique.
 	\frac{d (u(x(t),t))}{dt} &=& x'(t) \frac{\partial u}{\partial x}(x(t),t) + \frac{\partial u}{\partial t}(x(t),t) \\
 	&=& u(x(0),0) \frac{\partial u}{\partial x}(x(t),t) + \frac{\partial u}{\partial t}(x(t),t) \\
 	&=& u(x(0),0) \frac{\partial u}{\partial x}(x(t),t) - u(x(t),t) \frac{\partial u}{\partial x}(x(t),t) \\
-	&=& \frac{\partial u}{\partial x}(x(t),t) \left( u(x(0),0)-u(x(t),t) \right) \\
-	&=& 
+	&=& \frac{\partial u}{\partial x}(x(t),t) \left( u(x(0),0)-u(x(t),t) \right)
 \end{eqnarray*}
 
 Alors, les courbes caractéristiques sont de la forme $t longmapsto x(t) = u(x_0,0) t + x_0$.
@@ -223,14 +253,14 @@ x(t) = \left\{ \begin{matrix}
 	x_0 \text{ pour } x_0 > 1
 \end{matrix} \right. \]
 
-\begin{figure}[h]
+\begin{figure}[H]
   \input{figure/figure1.tex}
   \caption{Courbes caractéristiques \ref{eq3}}
 \end{figure}
 
 On voit que deux courbes peuvent se croiser. Nous obtenons 4 zones.
 
-\begin{figure}[h]
+\begin{figure}[H]
   \input{figure/figure2.tex}
   \caption{Différentes zones \ref{eq3}}
 \end{figure}
@@ -268,12 +298,14 @@ Nous avons résolue le problème au sens de Lax et la solution est :
 \tag{Sol3}
 \]
 
-\begin{figure}[h]
+\begin{figure}[H]
   \input{figure/figure3.tex}
   \caption{Solution de l'équation \ref{eq3}}
 \end{figure}
 
-2. Résolvons le problème de Riemann pour l'équation de Burgers :
+\subsubsection*{2.}
+
+Résolvons le problème de Riemann pour l'équation de Burgers :
 
 \[ \left\{ \begin{matrix}
 	\frac{\partial u}{\partial t} + \frac{\partial (u^2/2)}{\partial x} = 0 \\
@@ -292,7 +324,7 @@ Nous avons deux cas :
 
 $\bullet$ $u_L < u_R$, alors $u_L^{-1} > u_R^{-1}$. Les courbes caractéristiques ne se rencontrent pas.
 
-\begin{figure}[h]
+\begin{figure}[H]
   \input{figure/figure4.tex}
   \caption{Courbes caractéristiques pour $u_L < u_R$ \ref{eq4}}
 \end{figure}
@@ -305,7 +337,7 @@ Nous avons trois zones :
 
 - $zone3 = (x,t)$ tel que $u_L t < x < u_R t$ qui est plus complexe.
 
-\begin{figure}[h]
+\begin{figure}[H]
   \input{figure/figure5.tex}
   \caption{Différentes zones $u_L < u_R$ \ref{eq4}}
 \end{figure}
@@ -343,7 +375,7 @@ Pour $x = u_L t$ : $f(x,t) = \frac{u_L t}{t} = u_L$ et pour $x = u_R t$ : $f(x,t
 
 Alors la fonction $u$ vérifie l'équation au sens de Lax.
 
-\begin{figure}[h]
+\begin{figure}[H]
   \input{figure/figure6.tex}
   \caption{Solution de l'équation $u_L < u_R$ \ref{eq4}}
 \end{figure}
@@ -351,7 +383,7 @@ Alors la fonction $u$ vérifie l'équation au sens de Lax.
 
 $\bullet$ $u_L > u_R$, alors $u_L^{-1} < u_R^{-1}$. Les courbes caractéristiques se rencontrent (toutes les courbes de droite rencontre toutes les courbes de gauche).
 
-\begin{figure}[h]
+\begin{figure}[H]
   \input{figure/figure7.tex}
   \caption{Courbes caractéristiques $u_L > u_R$ \ref{eq4}}
 \end{figure}
@@ -367,12 +399,12 @@ La frontière du choc est une droite de pente $\sigma^{-1}$ et d'origine $(0,0)$
 \end{matrix}\right.
 \tag{Sol4.2} \]
 
-\begin{figure}
+\begin{figure}[H]
   \input{figure/figure8.tex}
   \caption{Solution de l'équation $u_L > u_R$ \ref{eq4}}
 \end{figure}
 
-3.
+\subsubsection*{3.}
 
 \begin{recap}{Schéma de Godunov pour l'équation de burgers}
 
@@ -401,7 +433,37 @@ $\bullet$ Flux de Godunov pour le cas $u_L > u_R$ :
 
 \end{recap}
 
-4.
+\subsubsection*{4.}
 
+Voici le résultat de mes codes pour l'équation de Burgers :
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.5]{figure/burgers_1.png}
+	\caption{Résolution équation de burgers pour $t=0.5$}
+\end{figure} 
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.5]{figure/burgers_2.png}
+	\caption{Résolution équation de burgers pour $t=0.5$}
+\end{figure} 
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.5]{figure/burgers_3.png}
+	\caption{Résolution équation de burgers pour $t=0.5$}
+\end{figure}
+
+Nous pouvons observer qu'il y a un problème notament au niveau des temps. Il doit y avoir 
+des problèmes au niveau de la discrétisation en temps. 
+\newline
+
+Voici le graphique des erreurs en norme $L^1$ en fonction de $N$ :
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.5]{figure/error_burgers.png}
+\end{figure} 
 
 \end{document}
