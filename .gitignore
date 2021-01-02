@@ -19,3 +19,5 @@ execute.bash
 output/
 *fdb_latexmk
 *.fls
+copy_figure.bash
+execute_all.bash
