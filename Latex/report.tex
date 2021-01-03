@@ -1,0 +1,169 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsthm, amsmath, amssymb, mathrsfs}
+\usepackage{tikz}
+\usepackage{graphics}
+\usepackage{float}
+\usepackage{multicol}
+
+\newtheorem{recap}{Recapitulation}
+\newtheorem{thm}{Theoreme}
+
+\title{Master 2 CSMI : EDP2\\Rapport de TP3}
+\author{Romain Vallet}
+
+\begin{document}
+
+\maketitle
+
+\section{Résolution numérique du système de Saint-Venant en deux dimension}
+
+Equation de Saint-Venant simplifié en 2 dimension :
+\[ \left\{ \begin{matrix}
+	\partial_t h + \partial_x (hu) + \partial_y (hv) = 0 \\
+	\partial_t (hu) + \partial_x (hu^2 + \frac{gh^2}{2}) + \partial_y (huv) = - gh \partial_x A \\
+	\partial_t (hv) + \partial_x (huv) + \partial_y (hv^2 + \frac{gh^2}{2})  = - gh \partial_y A 
+\end{matrix} \right. \]
+
+\subsubsection*{1.}
+
+Nous voulons écrire l'équation de Saint-Venant comme :
+\[ \partial_t w + \partial_x f_1(w) + \partial_y f_2(w) = S(w) \]
+
+Nous pouvons poser $w = \begin{pmatrix} h \\ hu \\ hv \end{pmatrix}$.
+\newline
+
+Il en suit :
+\[ f_1(w) = \begin{pmatrix} hu \\ hu^2 + \frac{gh^2}{2} \\ huv \end{pmatrix} = \begin{pmatrix} w_2 \\ \frac{w_2^2}{w_1} + \frac{g w_1^2}{2} \\ \frac{w_2 w_3}{w_1} \end{pmatrix} \]
+
+Et :
+\[ f_2(w) = \begin{pmatrix} hv \\ huv \\ hv^2 + \frac{gh^2}{2} \end{pmatrix} = \begin{pmatrix} w_3 \\ \frac{w_2 w_3}{w_1} \\ \frac{w_3^2}{w_1} + \frac{g w_1^2}{2} \end{pmatrix} \]
+
+Pour le second membre :
+\[ S(w) = \begin{pmatrix} 0 \\ -gh \partial_x A \\ -gh \partial_y A \end{pmatrix} \]
+
+\subsubsection*{2.}
+
+Nous avons :
+\begin{eqnarray*}
+	A(w, n) &=& \partial_w f(w) \cdot n \\
+		&=& A(w, n_1) + A(w,n_2)
+\end{eqnarray*}
+
+Avec :
+\begin{itemize}
+	\item $A(w, n_1) = \partial_w f_1(w) \cdot n_1 = \begin{pmatrix} 0 & 1 & 0 \\ -u^2+gh & 2u & 0 \\ -uv & v & u \end{pmatrix}$
+	\item $A(w, n_2) = \partial_w f_2(w) \cdot n_2 = \begin{pmatrix} 0 & 0 & 1 \\ -uv & v & u \\ -v^2+gh & 0 & 2v \end{pmatrix}$
+\end{itemize}
+
+Nous voulons calculer les valeurs propres de $A(w, n_1)$ et de $A(w, n_2)$ :
+
+\begin{eqnarray*}
+	\chi_{A(w, n_1)} &=& det |X \times I_3 - A(w,n_1)| \\
+	&=& \begin{vmatrix} X & -1 & 0 \\ u^2-gh & X-2u & 0 \\ uv & -v & X-u \end{vmatrix} \\
+	&=& (X-u) \begin{vmatrix} X & -1 \\ u^2-gh & X-2u \end{vmatrix} \text{ par développement de la dernière colonne} \\
+	&=& (X-u) \left( X(X-2u) + u^2-2u \right) \\
+	&=& (X-u) \, (X - (u-\sqrt{gh})) \, (X - (u+\sqrt{gh}))
+\end{eqnarray*}
+
+Les valeurs propres de $A(w, n_1)$ sont $u$, $u-\sqrt{gh}$ et $u+\sqrt{gh}$.
+
+\begin{eqnarray*}
+	\chi_{A(w,n_2)} &=& det |X \times I_3 - A(w,n_2)| \\
+	&=& \begin{vmatrix} X & 0 & -1 \\ uv & X-v & -u \\ v^2-gh & 0 & X-2v \end{vmatrix} \\
+	&=& (X-v) \begin{vmatrix} X & -1 \\ v^2-gh & X-2v \end{vmatrix} \text{ par développement de la deuxième colonne} \\
+	&=& (X-v) \left( X^2 - 2vX + v^2-gh \right) \\
+	&=& (X-v) (X-(v-\sqrt{gh})) (X-(v+\sqrt{gh})) 
+\end{eqnarray*}
+
+Les valeurs propres de $A(w, n_1)$ sont $v$, $v-\sqrt{gh}$ et $v+\sqrt{gh}$.
+\newline
+
+Et puisque dans le cas des deux matrices, le polynôme caractéristique associé est scindé à racine simple alors les deux matrices sont diagonalisables.
+\newline
+
+Pour $A(w,n_2$, les calcul sont similaires. $A(w, n_2)$ est aussi diagonalisable.
+
+Maintenant, nous voulons prouver que $A(w,n_1)$ et $A(w,n_2)$ sont codiagonalisables (diagonalisable dans la même base).
+
+\begin{thm}
+	Soient $A,B \in M_n(\mathbb{R})$ deux matrices diagonalisables. $A$ et $B$ sont codiagonalisables si, et seulement si, $A$ et $B$ commutent.
+\end{thm}
+
+Il nous reste à prouver que $A$ et $B$ commutent :
+
+D'une part :
+\[ A(w,n_1) \times A(w,n_2) = \begin{pmatrix} -uv & v & u \\ -2u^2v & 2uv & u^2+gh \\ -2uv^2+ugh & v^2 & 2uv \end{pmatrix} \]
+
+D'autre part :
+\[ A(w,n_2) \times A(w,n_1) = \begin{pmatrix} -uv & v & u \\ -2u^2v & 2uv & u^2+gh \\ -2uv^2+ugh & v^2 & 2uv \end{pmatrix}   \]
+
+Donc les deux matrices commutent, donc elles sont codiagonalisable. Alors la somme des deux matrices est diagonalisable et les valeurs propres de la somme de ces deux matrices est la somme des 
+valeurs propres de chacune des deux matrices.
+
+\underline{Conclusion :} les valeurs propres de $A(w,n)$ est diagonalisable de valeurs propres réelles. Les système est hyperbolique. 
+
+\subsubsection*{3.}
+
+Nous allons discrétisé la surface $\Omega = [0,L] \times [0,L]$ en un maillage de polygônes $\{L_i\}_{i=0,...,N-1}$. Les $L_i$ sont appelé
+cellules, $L_i$ est un ouvert, $L_j \cap L_i = \emptyset$ pour $i \ne j$ et $\overline{\underset{0 \leq i \leq N-1}{\bigcup} L_i} = \overline{\Omega}$.
+
+Pour une cellule $L$ du maillage, nous noterons l'ensemble de ses cellules voisines $V(L)$. Ainsi que $|L|$ sa surface, 
+Nous noterons $L|R$ l'interface entre deux cellules voisines $L$ et $R$, $\left| L|R \right|$ la longueur de l'arrête communes entre les deux cellules 
+et $n_{LR}$ le vecteur normal à l'interface entre $L$ et $R$.
+\newline
+
+Nous noterons $h_L^n$ la valeur de $h$, $u_L^n$ la valeur de $u$ et $v_L^n$ la valeur de $v$ pour la cellule $L$ en temps $n \Delta t$.
+\newline
+
+L'équation de Saint-Venant se discrétise en :
+\[ |L| \frac{w_L^{n+1} - w_L^n}{\Delta t} + \underset{R \in V(L)}{\sum} \, \left| L|R \right| \, f(w_L, w_R, n_{LR}) = S(w_L) \]
+
+Ce qui devient :
+\[ w_L^{n+1} = w_L^n - \frac{\Delta t}{|L|} \left( \underset{R \in V(L)}{\sum} \, \left| L|R \right| \, f(w_L, w_R, n_{LR}) + S(w_L) \right) \]
+
+Dans ces conditions, le flux de Rusanov va s'écrire :
+\[ f(w_L, w_R, n) = \frac{f(w_L,n)+f(w_R,n)}{2} - \frac{\lambda}{2} (w_R-w_L) \]
+
+Avec $\lambda = max (\rho(A(w_L,n)), \rho(A(w_R,n)))$ et $\rho(A(w,n)) = \underset{\lambda \text{ valeur propre de } A(w,n)}{max} \, |\lambda|$.
+
+\subsubsection*{4.}
+
+Soit $L^{\circ}$ une cellule à la frontière.
+
+\underline{Miroir} : Nous aurons
+
+\[ \left\{ \begin{matrix}
+	h_{L^{\circ}}^{n+1} = h_{L^{\circ}}^n  \\
+	u_{L^{\circ}}^{n+1} = - u_{L^{\circ}}^n  \\
+	v_{L^{\circ}}^{n+1} = - v_{L^{\circ}}^n
+\end{matrix} \right. \]
+
+\underline{Valeurs imposées} :
+
+Si nous posons les valeurs comme ceci :
+\[ \left\{ \begin{matrix}
+	h(t, x, y) = g_h(t, x, y) \text{ pour } (x, y) \in \partial \Omega \\
+	u(t, x, y) = g_u(t, x, y) \text{ pour } (x, y) \in \partial \Omega \\
+	v(t, x, y) = g_v(t, x, y) \text{ pour } (x, y) \in \partial \Omega
+\end{matrix} \right. \]
+
+Avec $g_h$, $g_u$ et $g_v$ donnés.
+\newline
+
+Pour la discrétisation, nous prenons les valeurs moyennes :
+
+\[ \left\{ \begin{matrix}
+	h_{L^{\circ}}^n = \frac{1}{|L^{\circ}|} \int_{L^{\circ}}{g_h(x, y, t^n) \, dx dy}  \\
+	u_{L^{\circ}}^n = \frac{1}{|L^{\circ}|} \int_{L^{\circ}}{g_u(x, y, t^n) \, dx dy}  \\
+	v_{L^{\circ}}^n = \frac{1}{|L^{\circ}|} \int_{L^{\circ}}{g_v(x, y, t^n) \, dx dy}
+\end{matrix} \right. \]
+
+\underline{Zone sèche} :
+\[ \left\{ \begin{matrix}
+	h_{L^{\circ}}^n = 0  \\
+	u_{L^{\circ}}^n = 0  \\
+	v_{L^{\circ}}^n = 0
+\end{matrix} \right. \]
+
+\end{document}
