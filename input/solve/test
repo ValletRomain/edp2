@@ -1,6 +1,6 @@
 Test solve
 
-option burgers_1d_1
+option saint_venant_1d
 xmin -2
 xmax 2
 cfl 0.5

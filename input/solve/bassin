@@ -1,6 +1,6 @@
 Test solve
 
-option burgers_1d_1
+option bassin
 xmin -10
 xmax 10
 cfl 0.5
