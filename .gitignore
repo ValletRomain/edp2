@@ -5,5 +5,5 @@ output/
 *.fdb_latexmk
 *.fls
 *.log
-*.pdf
+report.pdf
 *.synctex.gz
