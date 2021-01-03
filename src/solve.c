@@ -45,11 +45,7 @@ int main(int argc, char * argv[]){
 
     while ( (c=getopt(argc, argv, "grme"))!=-1 ){
         switch (c)
-        {
-/*      case 'a':
-            aflag++;
-            break;*/
-        
+        {        
         case 'g':
             gflag++;
             break;

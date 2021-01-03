@@ -178,6 +178,7 @@ void parameters_init_file(parameters *ppar, char * path_input, char * path_outpu
                     xmin, xmax, cfl, tmax,
                     N, option_equation);
 
+
     //--------------------------------------------------------
     // Creation of folder
 
@@ -210,16 +211,6 @@ void parameters_plot(parameters *ppar){
     
     // Creation and execution of file plotcom.gnu
     par_create_execute_gnu(ppar);
-    
-    /*
-    // Creation of animation
-    if (ppar->option_animation){
-        if (ppar->option_godunov)
-            par_create_animation(ppar, 0);
-        if (ppar->option_godunov)
-            par_create_animation(ppar, 1);
-    }
-    */
 
     printf("Fin Plot\n");
 }
@@ -415,7 +406,6 @@ void muscl_solve(parameters *ppar, int option_visual){
     if (option_visual){
         printf("Fin Resolution MUSCL\n");
     }
-
 }
 
 
