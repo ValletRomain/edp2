@@ -2,7 +2,7 @@
 Solve the problem with a method (godunov, rusanov or MUSCL). Plot the result.
 
 Usage of application :
-    solve {g|r|m|e} path_input path_output
+    solve -gr path_input path_output
 
 path_input : string of path of input file. The input file is filled by the parameters of problem. This file is structure :
     - option_godunov : equation to resolve
@@ -22,8 +22,6 @@ path_output : string of path of output directory where the result is put. This d
 option :
     - g solve with method of Godunov
     - r solve with method of Rusanov
-    - m solve with method of MUSCL
-    - e compute the exact solution
 */
 
 #include <stdlib.h>
@@ -43,27 +41,15 @@ int main(int argc, char * argv[]){
 
     aflag = 0;
 
-    while ( (c=getopt(argc, argv, "grme"))!=-1 ){
+    while ( (c=getopt(argc, argv, "gr"))!=-1 ){
         switch (c)
         {
-/*      case 'a':
-            aflag++;
-            break;*/
-        
         case 'g':
             gflag++;
             break;
 
         case 'r':
             rflag++;
-            break;
-
-        case 'm':
-            mflag++;
-            break;
-        
-        case 'e':
-            eflag++;
             break;
 
         default:
@@ -79,7 +65,7 @@ int main(int argc, char * argv[]){
         errflag++;
     
     if (errflag)
-        raler(0, "usage : solve {g|r|gr} [a] path_input path_output");
+        raler(0, "usage : solve -gmre [a] path_input path_output");
 
     char * path_input = malloc(CHEMIN_MAX);
     char * path_output = malloc(CHEMIN_MAX);
@@ -98,8 +84,6 @@ int main(int argc, char * argv[]){
         godunov_solve(&par, 1);
     if (rflag)
         rusanov_solve(&par, 1);
-    //if (mflag)
-    //    muscl_solve(&par, 1);
 
     w_to_hu(&par);
 

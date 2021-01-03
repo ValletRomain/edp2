@@ -69,43 +69,6 @@ typedef struct parameters{
 
 } parameters;
 
-typedef struct parameters_error{
-
-    // Name of different file or folder
-    char * name_file;
-
-    char * path_input; // path of input file
-    char * complete_path_output; // path of output folder (output_path/name_file)
-
-    char * option_error;
-    char * option_equation;
-    int option_godunov;
-    int option_rusanov;
-    int option_muscl;
-
-    // Parametre du probleme
-    //int m; // nombre de variables conservatives, nombre de cellules
-    double dt, dx; // pas de temps, pas d'espace
-    double xmin, xmax; // bornes de l'intervalles
-    double cfl; // vmax : dt/dx
-    double tmax;
-
-    int len_liste_N;
-    int * liste_N;
-
-    double (*perror)(int, double*, double*); // error (norm_L1, L2, inf...)
-
-    double * liste_error_gd;
-    unsigned long * liste_time_gd;
-
-    double * liste_error_ru;
-    unsigned long * liste_time_ru;
-
-    double *liste_error_muscl;
-    unsigned long *liste_time_muscl;
-
-} parameters_error;
-
 void parameters_init(parameters *par,
                     int option_godunov, int option_rusanov, int option_muscl, int option_solexacte,
                     double xmin, double xmax, double cfl, double tmax,
@@ -123,23 +86,5 @@ void parameters_free(parameters *par);
 void godunov_solve(parameters *par, int option_visual);
 
 void rusanov_solve(parameters *par, int option_visual);
-
-//void muscl_solve(parameters *par, int option_visual);
-
-void parameters_error_init(parameters_error *pperr,
-                        int option_godunov, int option_rusanov, int option_muscl,
-                        double xmin, double xmax, double cfl, double tmax,
-                        int len_liste_N, int * liste_N,
-                        char * option_error, char * option_equation);
-
-void parameters_error_init_file(parameters_error *pperr,
-                        char * path_input, char * path_output,
-                        int option_godunov, int option_rusanov, int option_muscl);
-
-void parameters_error_plot(parameters_error *pperr);
-
-void parameters_error_free(parameters_error * pperr);
-
-void parameters_error_compute(parameters_error *pperr);
 
 #endif
