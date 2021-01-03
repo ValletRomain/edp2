@@ -41,59 +41,43 @@ void parameters_init(parameters *ppar,
     give_parameters(ppar, option_equation);
     ppar->option_equation = malloc(CHEMIN_MAX);
     strcpy(ppar->option_equation, option_equation);
-
     ppar->dx = (xmax - xmin) / N;
-
+    
     ppar->xi = malloc((N+2) * sizeof(double));
+    
+    int m = ppar->m;
 
     if (option_godunov){
-        ppar->un = malloc((N+2) * sizeof(double*));
-        ppar->unp1 = malloc((N+2) * sizeof(double*));
-
-        for (int i=0; i < N+2; i++){
-            ppar->un = malloc(ppar->m * sizeof(double));
-            ppar->unp1 = malloc(ppar->m * sizeof(double));
-        }
+        ppar->un = malloc((N+2) * m * sizeof(double));
+        ppar->unp1 = malloc((N+2) * m  * sizeof(double));
     }
     if (option_rusanov){
-        ppar->vn = malloc((N+2) * sizeof(double*));
-        ppar->vnp1 = malloc((N+2) * sizeof(double*));
-
-        for (int i=0; i < N+2; i++){
-            ppar->vn = malloc(ppar->m * sizeof(double));
-            ppar->vnp1 = malloc(ppar->m * sizeof(double));
-        }
+        ppar->vn = malloc((N+2) * m * sizeof(double));
+        ppar->vnp1 = malloc((N+2) * m * sizeof(double));
     }
     if (option_muscl){
-        ppar->wn = malloc((N+2) * sizeof(double*));
-        ppar->wnp1 = malloc((N+2) * sizeof(double*)); 
-
-        for (int i=0; i < N+2; i++){
-            ppar->wn = malloc(ppar->m * sizeof(double));
-            ppar->wnp1 = malloc(ppar->m * sizeof(double));
-        }       
+        ppar->wn = malloc((N+2) * m * sizeof(double));
+        ppar->wnp1 = malloc((N+2) * m * sizeof(double));     
     }
-    if (option_solexacte)
-        ppar->sol = malloc((N+2) * sizeof(double*));
-
-        for (int i=0; i < N+2; i++)
-            ppar->sol = malloc(ppar->m * sizeof(double));
+    if (option_solexacte){
+        ppar->sol = malloc((N+2) * m * sizeof(double));
+    }
 
     for (int i = 0; i < N + 2; i++){
-
+        
         ppar->xi[i] = xmin + ppar->dx/2 + (i-1)*ppar->dx;
-
+        
         if (option_godunov)
-            ppar->pboundary_spatial(ppar->xi[i], ppar->un[i]);
-
+            ppar->pboundary_spatial(ppar->xi + i, ppar->un + i*m);
+        
         if (option_rusanov)
-            ppar->pboundary_spatial(ppar->xi[i], ppar->vn[i]);
+            ppar->pboundary_spatial(ppar->xi + i, ppar->vn + i*m);
 
         if (option_muscl)
-            ppar->pboundary_spatial(ppar->xi[i], ppar->wn[i]);
+            ppar->pboundary_spatial(ppar->xi + i, ppar->wn + i*m);
 
         if (option_solexacte)
-            ppar->psolexacte(ppar->xi[i], tmax, ppar->wn[i]);
+            ppar->pboundary_spatial(ppar->xi + i, ppar->sol + i*m);
         
     }
 }
@@ -106,7 +90,7 @@ void parameters_init_file(parameters *ppar, char * path_input, char * path_outpu
     char * str = malloc(CHEMIN_MAX);
     const char * separators = " \n";
     const char * separators1 = "/";
-
+    
     //--------------------------------------------------------
     // Sauvegarde du nom du fichier
     
@@ -270,6 +254,8 @@ void godunov_solve(parameters *ppar, int option_visual){
         printf("Debut Resolution godunov\n");
     }
 
+    int m = ppar->m;
+
     time_t begin = time(NULL);
     
     double tnow = 0;
@@ -278,20 +264,20 @@ void godunov_solve(parameters *ppar, int option_visual){
         // calcul de la vitesse max
         double vmax = 0;
         for (int i = 0; i < ppar->N + 2; i++){
-            double vloc = fabs(ppar->plambda_ma(ppar->un[i]));
+            double vloc = fabs(ppar->plambda_ma(ppar->un + i*m));
             vmax = vmax > vloc ? vmax : vloc;
         }
         
         ppar->dt = ppar->cfl * ppar->dx / vmax;
         for(int i = 1; i < ppar->N+1; i++){
             double flux[ppar->m];
-            ppar->pfluxnum_gd(ppar->un[i], ppar->un[i+1], flux);
+            ppar->pfluxnum_gd(ppar->un + i*m, ppar->un + (i+1)*m, flux);
             for (int iv=0; iv < ppar->m; iv++)
-                ppar->unp1[i][iv] = ppar->un[i][iv] - ppar->dt/ppar->dx * flux[iv];
+                ppar->unp1[i*m + iv] = ppar->un[i*m + iv] - ppar->dt/ppar->dx * flux[iv];
 
-            ppar->pfluxnum_gd(ppar->un[i-1], ppar->un[i], flux);
+            ppar->pfluxnum_gd(ppar->un + (i-1)*m, ppar->un + i*m, flux);
             for (int iv=0; iv < ppar->m; iv++)
-                ppar->unp1[i][iv] += ppar->dt / ppar->dx * flux[iv];
+                ppar->unp1[i*m + iv] += ppar->dt / ppar->dx * flux[iv];
         }
         // mise à jour
         tnow += ppar->dt;
@@ -301,10 +287,10 @@ void godunov_solve(parameters *ppar, int option_visual){
         }
         
         // conditions aux limites
-        ppar->pboundary_temporal_left(ppar->xmin, tnow, ppar->unp1[0]);
-        ppar->pboundary_temporal_right(ppar->xmax, tnow, ppar->unp1[ppar->N+1] );
+        ppar->pboundary_temporal_left(ppar->xmin, tnow, ppar->unp1);
+        ppar->pboundary_temporal_right(ppar->xmax, tnow, ppar->unp1 + ppar->N+1 * m);
 
-        memcpy(ppar->un, ppar->unp1, (ppar->N + 2) *sizeof(double));
+        memcpy(ppar->un, ppar->unp1, (ppar->N + 2) * m *sizeof(double));
 
     }
     time_t end = time(NULL);
@@ -323,6 +309,8 @@ void rusanov_solve(parameters *ppar, int option_visual){
     if (option_visual){
         printf("Debut Resolution rusanov\n");
     }
+    
+    int m = ppar->m;
 
     time_t begin = time(NULL);
     
@@ -332,21 +320,21 @@ void rusanov_solve(parameters *ppar, int option_visual){
         // calcul de la vitesse max
         double vmax = 0;
         for (int i = 0; i < ppar->N + 2; i++){
-            double vloc = fabs(ppar->plambda_ma(ppar->vn[i]));
+            double vloc = fabs(ppar->plambda_ma(ppar->vn + i*m));
             vmax = vmax > vloc ? vmax : vloc;
         }
         
-        ppar->dt = ppar->cfl * ppar->dx / vmax;
+        ppar->dt = ppar->cfl * ppar->dx / vmax; 
         for(int i = 1; i < ppar->N+1; i++){
             double flux[ppar->m];
-            ppar->pfluxnum_ru(ppar->vn[i], ppar->vn[i+1], flux);
+            ppar->pfluxnum_ru(ppar->vn + i*m, ppar->vn + (i+1)*m, flux);
             for (int iv=0; iv < ppar->m; iv++)
-                ppar->unp1[i][iv] = ppar->un[i][iv] - ppar->dt/ppar->dx * flux[iv];
+                ppar->vnp1[i*m + iv] = ppar->vn[i*m + iv] - ppar->dt/ppar->dx * flux[iv];
             
-            ppar->pfluxnum_ru(ppar->vn[i-1], ppar->vn[i], flux);
+            ppar->pfluxnum_ru(ppar->vn + (i-1)*m, ppar->vn + i*m, flux);
             for (int iv=0; iv < ppar->m; iv++)
-                ppar->unp1[i][iv] += ppar->dt / ppar->dx * flux[iv];
-        }
+                ppar->vnp1[i*m + iv] += ppar->dt / ppar->dx * flux[iv];
+        } 
         // mise à jour
         tnow += ppar->dt;
 
@@ -355,10 +343,10 @@ void rusanov_solve(parameters *ppar, int option_visual){
         }
         
         // conditions aux limites
-        ppar->pboundary_temporal_left(ppar->xmin, tnow, ppar->vnp1[0]);
-        ppar->pboundary_temporal_right(ppar->xmax, tnow, ppar->vnp1[ppar->N+1]);
+        ppar->pboundary_temporal_left(ppar->xmin, tnow, ppar->vnp1);
+        ppar->pboundary_temporal_right(ppar->xmax, tnow, ppar->vnp1 + ppar->N+1 * m);
 
-        memcpy(ppar->vn, ppar->vnp1, (ppar->N + 2) * sizeof(double));
+        memcpy(ppar->vn, ppar->vnp1, (ppar->N + 2) * m * sizeof(double));
 
     }
     time_t end = time(NULL);
@@ -367,6 +355,24 @@ void rusanov_solve(parameters *ppar, int option_visual){
 
     if (option_visual)
         printf("Fin Resolution rusanov\n");
+}
+
+void w_to_hu(parameters *ppar){
+
+    int m = ppar->m;
+
+    for (int i=0; i < ppar->N+2; i++){
+
+        if (ppar->option_godunov){
+            ppar->un[i*m + 1] = ppar->un[i*m+0] / ppar->un[i*m+1];
+        }
+        if (ppar->option_rusanov){
+            ppar->vn[i*m + 1] = ppar->vn[i*m+0] / ppar->vn[i*m+1];
+        }
+        if (ppar->option_muscl){
+            ppar->wn[i*m + 1] = ppar->wn[i*m+0] / ppar->wn[i*m+1];
+        }
+    }
 }
 
 /*
@@ -399,13 +405,13 @@ void muscl_solve(parameters *ppar, int option_visual){
                                         w_half_p(ppar->wn[i], ppar->wn[i+1], ppar->wn[i+2]),
                                         flux);
             for (int iv=0; iv < ppar->m; iv++)
-                ppar->unp1[i][iv] = ppar->un[i][iv] - ppar->dt/ppar->dx * flux[iv];
+                ppar->wnp1[i][iv] = ppar->wn[i][iv] - ppar->dt/ppar->dx * flux[iv];
             
             ppar->pfluxnum_gd(w_half_l(ppar->wn[i-2], ppar->wn[i-1], ppar->wn[i]),
                                         w_half_p(ppar->wn[i-1], ppar->wn[i], ppar->wn[i+1]),
                                         flux);
             for (int iv=0; iv < ppar->m; iv++)
-                ppar->unp1[i][iv] += ppar->dt / ppar->dx * flux[iv];
+                ppar->wnp1[i][iv] += ppar->dt / ppar->dx * flux[iv];
         }
         // mise à jour
         tnow += ppar->dt;

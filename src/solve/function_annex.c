@@ -20,9 +20,9 @@
 
 void give_parameters(parameters * ppar, char * option_equation){
 
-    if (option_equation == "saint_venant_1d"){
+    if (strcmp(option_equation, "saint_venant_1d") == 0){
 
-        ppar->m = 1;
+        ppar->m = 2;
 
         ppar->plambda_ma = lambda_ma_sv;
         ppar->pfluxnum_gd = fluxnum_gd_sv;
@@ -34,10 +34,20 @@ void give_parameters(parameters * ppar, char * option_equation){
 
         //ppar->psolexacte = solexacte_sv;
     }
-    if (option_equation == "saint_venant_2d"){
+    else if (strcmp(option_equation, "bassin") == 0){
 
         ppar->m = 2;
 
+        ppar->plambda_ma = lambda_ma_sv;
+        ppar->pfluxnum_gd = fluxnum_gd_sv;
+        ppar->pfluxnum_ru = fluxnum_ru_sv;
+
+        ppar->pboundary_spatial = boundary_spatial_bassin;
+        ppar->pboundary_temporal_left = boundary_temporal_left_bassin;
+        ppar->pboundary_temporal_right = boundary_temporal_right_bassin;
+    }
+    else {
+        raler(0,"The option \"%s\" dot not exist", option_equation);
     }
 }
 
@@ -101,6 +111,8 @@ void par_create_plot(parameters * ppar){
     // Create file plot.dat for parameters object ppar
     // Give exact solution if ppar->keept_solution=1
 
+    int m = ppar->m;
+
     char * name_file = malloc(CHEMIN_MAX);
     strcpy(name_file, ppar->complete_path_output);
     strcat(name_file, "/plot.dat");
@@ -127,21 +139,24 @@ void par_create_plot(parameters * ppar){
     fprintf(fic, "\n");
 
     for (int i=0; i<ppar->N+2; i++){
+
+        fprintf(fic, "%f ", ppar->xi[i]);
+
         if (ppar->option_godunov){
             for (int iv=0; iv<ppar->m; iv++)
-                fprintf(fic, "%f ", ppar->un[i][iv]);
+                fprintf(fic, "%f ", ppar->un[i*m + iv]);
         }
         if (ppar->option_rusanov){
             for (int iv=0; iv<ppar->m; iv++)
-                fprintf(fic, "%f ", ppar->vn[i][iv]);
+                fprintf(fic, "%f ", ppar->vn[i*m + iv]);
         }
         if (ppar->option_muscl){
             for (int iv=0; iv<ppar->m; iv++)
-                fprintf(fic, "%f ", ppar->wn[i][iv]);
+                fprintf(fic, "%f ", ppar->wn[i*m + iv]);
         }
         if (ppar->option_solexacte){
             for (int iv=0; iv<ppar->m; iv++)
-                fprintf(fic, "%f ", ppar->sol[i][iv]);
+                fprintf(fic, "%f ", ppar->sol[i*m + iv]);
         }
         fprintf(fic, "\n");
     }
@@ -168,7 +183,7 @@ void par_create_execute_gnu(parameters * ppar){
     fprintf(fic, "set output \'%s/graphe.png\'\n\n", ppar->complete_path_output);
 
     fprintf(fic, "\n");
-    fprintf(fic, "set multiplot layout %d, 1 title \"Resolution de %s tmax=%f\"", ppar->m, ppar->option_equation, ppar->tmax);
+    fprintf(fic, "set multiplot layout %d, 1 title \"Resolution de Saint Venant tmax=%f\"", ppar->m, ppar->tmax);
     fprintf(fic, "\n");
 
     fprintf(fic, "set xlabel \"x\"\n");

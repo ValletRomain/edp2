@@ -89,17 +89,19 @@ int main(int argc, char * argv[]){
 
 
     parameters par = {0};
-
+    
     parameters_init_file(&par,
                         path_input, path_output,
                         gflag, rflag, mflag, eflag);
-
+    
     if (gflag)
         godunov_solve(&par, 1);
     if (rflag)
         rusanov_solve(&par, 1);
     //if (mflag)
     //    muscl_solve(&par, 1);
+
+    w_to_hu(&par);
 
     parameters_plot(&par);
     

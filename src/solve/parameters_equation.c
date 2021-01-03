@@ -188,7 +188,7 @@ double lambda_ma_sv(double * w){
 #define uR 0
 #define hR 1
 
-void boundary_spatial_1(double x, double *w){
+void boundary_spatial_1(double *x, double *w){
 
   if (x <= 0){
     w[0] = hL;
@@ -222,7 +222,7 @@ void boundary_temporal_right_1(double xmax, double t, double *w){
 #define uR2 0
 #define hR2 1
 
-void boundary_spatial_1(double x, double *w){
+void boundary_spatial_bassin(double *x, double *w){
 
   if (x <= 0){
     w[0] = hL2;
@@ -234,13 +234,13 @@ void boundary_spatial_1(double x, double *w){
   }
 }
 
-void boundary_temporal_left_1(double xmin, double t, double *w){
+void boundary_temporal_left_bassin(double xmin, double t, double *w){
 
     w[0] = w[0];
     w[1] = -w[1];  
 }
 
-void boundary_temporal_right_1(double xmax, double t, double *w){
+void boundary_temporal_right_bassin(double xmax, double t, double *w){
 
     w[0] = w[0];
     w[1] = - w[1]; 

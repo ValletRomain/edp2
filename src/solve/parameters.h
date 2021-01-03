@@ -34,12 +34,12 @@ typedef struct parameters{
     void (*pfluxnum_ru)(double*, double*, double*);
 
     // Border condition
-    void (*pboundary_spatial)(double, double*);
+    void (*pboundary_spatial)(double*, double*);
     void (*pboundary_temporal_left)(double, double, double*);
     void (*pboundary_temporal_right)(double, double, double*);
 
     // Solution exacte
-    double (*psolexacte)(double, double, double*);
+    double (*psolexacte)(double*, double*, double*);
 
 
     // Resultats du probleme
@@ -50,19 +50,19 @@ typedef struct parameters{
     double *xi; // centre des milieux des cellules
     
     // Godunov
-    double ** un; // solution a l'instant n
-    double ** unp1; // solution a l'instant n+1
+    double * un; // solution a l'instant n
+    double * unp1; // solution a l'instant n+1
 
     // Rusanov
-    double ** vn; // solution a l'instant n
-    double ** vnp1; // solution a l'instant n+1
+    double * vn; // solution a l'instant n
+    double * vnp1; // solution a l'instant n+1
 
     // MUSCL
-    double ** wn;
-    double ** wnp1;
+    double * wn;
+    double * wnp1;
 
     // solution exact
-    double ** sol;
+    double * sol;
 
     int int_tnow_gd;
     int int_tnow_ru;
