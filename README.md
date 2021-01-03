@@ -2,7 +2,7 @@
 
 auteur : Vallet Romain
 
-Ce projet contient les rendue des Travaux Pratiques pour le cours EDP2 du Master 2 CSMI :
+Ce projet contient les rendues des Travaux Pratiques pour le cours EDP2 du Master 2 CSMI :
 - TP1
 - TP2
 - TP3
